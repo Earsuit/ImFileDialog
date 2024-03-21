@@ -47,7 +47,8 @@ find_package(Threads REQUIRED)
 if (MSVC)
     add_compile_options(/Zc:char8_t-)
 else()
-    add_compile_options(-fno-char8_t)
+    # -ftemplate-depth for the DEFAULT_FILE_ICON and DEFAULT_FOLDER_ICON
+    add_compile_options(-fno-char8_t -ftemplate-depth=2048)
 endif()
 
 # create executable

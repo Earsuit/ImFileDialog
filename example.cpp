@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
     ImGui_ImplOpenGL3_Init(glslVersion);
 
 	// ImFileDialog requires you to set the CreateTexture and DeleteTexture
-	ifd::FileDialog::Instance().CreateTexture = [](uint8_t* data, int w, int h, char fmt) -> void* {
+	ifd::FileDialog::Instance().CreateTexture = [](const uint8_t* data, int w, int h, char fmt) -> void* {
 		GLuint tex;
 
 		glGenTextures(1, &tex);
