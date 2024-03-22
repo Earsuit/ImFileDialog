@@ -848,7 +848,7 @@ namespace ifd {
 		uint8_t* data = (uint8_t*)malloc(byteSize);
 		GetBitmapBits(iconInfo.hbmColor, byteSize, data);
 
-		m_icons[pathU8] = this->CreateTexture(data, ds.dsBm.bmWidth, ds.dsBm.bmHeight, 0);
+		m_icons[pathU8] = this->CreateTexture(data, ds.dsBm.bmWidth, ds.dsBm.bmHeight, Format::BGRA);
 
 		free(data);
 
@@ -899,7 +899,9 @@ namespace ifd {
 																GTK_ICON_LOOKUP_FORCE_SIZE); 
 			G_IS_OBJECT(gtkIconInfo)) {
 			const auto gPixBuf = gtk_icon_info_load_icon(gtkIconInfo, nullptr);
-			m_icons[pathU8] = this->CreateTexture(gdk_pixbuf_get_pixels(gPixBuf), gdk_pixbuf_get_width(gPixBuf), gdk_pixbuf_get_height(gPixBuf), 1);
+			const auto fmt = gdk_pixbuf_get_has_alpha(gPixBuf) ? Format::RGBA : Format::RGB;
+
+			m_icons[pathU8] = this->CreateTexture(gdk_pixbuf_get_pixels(gPixBuf), gdk_pixbuf_get_width(gPixBuf), gdk_pixbuf_get_height(gPixBuf), fmt);
 		
 			g_object_unref(gtkIconInfo);
 			g_object_unref(gPixBuf);
@@ -927,7 +929,7 @@ namespace ifd {
 
 		// light theme - load default icons
 		if (ImGui::GetStyleColorVec4(ImGuiCol_WindowBg) == IMGUI_LIGHT_THEME_WINDOW_BG) {
-			m_icons[pathU8] = this->CreateTexture(reinterpret_cast<const uint8_t*>(icon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, 0);
+			m_icons[pathU8] = this->CreateTexture(reinterpret_cast<const uint8_t*>(icon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, Format::BGRA);
 		}
 		// dark theme - invert the colors
 		else {
@@ -937,7 +939,7 @@ namespace ifd {
 				return (RGB_MASK - (rgba & RGB_MASK)) | (rgba & ALPHA_MASK);
 			});
 
-			m_icons[pathU8] = this->CreateTexture(reinterpret_cast<const uint8_t*>(invertedIcon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, 0);
+			m_icons[pathU8] = this->CreateTexture(reinterpret_cast<const uint8_t*>(invertedIcon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, Format::BGRA);
 		}
 
 		return m_icons[pathU8];
@@ -1289,7 +1291,7 @@ namespace ifd {
 			int fileId = 0;
 			for (auto& entry : m_content) {
 				if (entry.HasIconPreview && entry.IconPreviewData != nullptr) {
-					entry.IconPreview = this->CreateTexture(entry.IconPreviewData, entry.IconPreviewWidth, entry.IconPreviewHeight, 1);
+					entry.IconPreview = this->CreateTexture(entry.IconPreviewData, entry.IconPreviewWidth, entry.IconPreviewHeight, Format::RGBA);
 					stbi_image_free(entry.IconPreviewData);
 					entry.IconPreviewData = nullptr;
 				}

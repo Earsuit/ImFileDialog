@@ -14,6 +14,12 @@
 #define IFD_DIALOG_SAVE			2
 
 namespace ifd {
+	enum class Format: char{
+		BGRA,
+		RGBA,
+		RGB
+	};
+
 	class FileDialog {
 	public:
 		static inline FileDialog& Instance()
@@ -46,7 +52,7 @@ namespace ifd {
 		}
 		inline float GetZoom() { return m_zoom; }
 
-		std::function<void*(const uint8_t*, int, int, char)> CreateTexture; // char -> fmt -> { 0 = BGRA, 1 = RGBA }
+		std::function<void*(const uint8_t*, int, int, Format)> CreateTexture;
 		std::function<void(void*)> DeleteTexture;
 
 		struct FileTreeNode {
