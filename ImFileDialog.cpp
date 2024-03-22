@@ -795,12 +795,13 @@ namespace ifd {
 
 	void* FileDialog::m_getIcon(const std::filesystem::path& path)
 	{
+		const std::string pathU8 = path.u8string();
+
+		if (m_icons.contains(pathU8)) {
+			return m_icons[pathU8];
+		}
+
 #ifdef _WIN32
-		if (m_icons.count(path.u8string()) > 0)
-			return m_icons[path.u8string()];
-
-		std::string pathU8 = path.u8string();
-
 		std::error_code ec;
 		m_icons[pathU8] = nullptr;
 
@@ -852,14 +853,7 @@ namespace ifd {
 
 		free(data);
 
-		return m_icons[pathU8];
 #elif defined(__linux__)
-		const std::string pathU8 = path.u8string();
-
-		if (m_icons.contains(pathU8)) {
-			return m_icons[pathU8];
-		}
-
 		GFile* gFile;
 		if (std::filesystem::exists(path)) {
 			gFile = g_file_new_for_path(pathU8.c_str());
@@ -909,16 +903,7 @@ namespace ifd {
 
 		g_object_unref(gFileInfo);
 		g_object_unref(gFile);
-
-		return m_icons[pathU8];
-
 #else
-		const std::string pathU8 = path.u8string();
-
-		if (m_icons.contains(pathU8)) {
-			return m_icons[pathU8];
-		}
-
 		auto icon = DEFAULT_FILE_ICON;
 		if (std::filesystem::is_directory(path) || !std::filesystem::exists(path)) {
 			// treat non-exists path as a director, such as "Quick access"
@@ -941,9 +926,8 @@ namespace ifd {
 
 			m_icons[pathU8] = this->CreateTexture(reinterpret_cast<const uint8_t*>(invertedIcon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, Format::BGRA);
 		}
-
-		return m_icons[pathU8];
 #endif
+		return m_icons[pathU8];
 	}
 	void FileDialog::m_clearIcons()
 	{
