@@ -55,6 +55,7 @@ namespace ifd {
 		std::function<void*(const uint8_t*, int, int, Format)> CreateTexture;
 		std::function<void(void*)> DeleteTexture;
 
+	private:
 		struct FileTreeNode {
 #ifdef _WIN32
 			FileTreeNode(const std::wstring& path) {
@@ -72,6 +73,7 @@ namespace ifd {
 			bool Read;
 			std::vector<FileTreeNode*> Children;
 		};
+
 		struct FileData {
 			FileData(const std::filesystem::path& path);
 
@@ -86,7 +88,6 @@ namespace ifd {
 			int IconPreviewWidth, IconPreviewHeight;
 		};
 
-	private:
 		std::string m_currentKey;
 		std::string m_currentTitle;
 		std::filesystem::path m_currentDirectory;
