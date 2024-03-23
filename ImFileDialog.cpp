@@ -3,10 +3,6 @@
 #endif
 #include "ImFileDialog.h"
 
-#include <array>
-#include <fstream>
-#include <algorithm>
-#include <sys/stat.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -14,6 +10,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "magic_enum/magic_enum_all.hpp"
+
+#include <cmath>
+#include <array>
+#include <fstream>
+#include <algorithm>
+#include <sys/stat.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <shellapi.h>
@@ -36,6 +39,14 @@ namespace ifd {
 	constexpr auto DEFAULT_ICON_CHANNELS = 4;
 	constexpr auto RGB_MASK = 0xFFFFFFU;
 	constexpr auto ALPHA_MASK = 0xFF000000U;
+
+	enum class SizeUnit : uint8_t {
+		B = 0,
+		KiB,
+		MiB,
+		GiB,
+		TiB
+	};
 
 	template <typename... T>
 	constexpr auto make_array(T&&... values)
@@ -421,11 +432,25 @@ namespace ifd {
 		return ret;
 	}
 
-	FileDialog::FileData::FileData(const std::filesystem::path& path) {
+	FileDialog::SmartSize::SmartSize(size_t s):
+		SizeInByte{s},
+		Size{static_cast<float>(SizeInByte)},
+		Unit{magic_enum::enum_name(SizeUnit::B)} 
+	{
+		if (Size >= 1024) {
+			if (auto u = magic_enum::enum_cast<SizeUnit>(static_cast<uint8_t>(std::log(Size) / std::log(1024.0f))); u) {
+				Size = SizeInByte / std::pow(1024.0f, magic_enum::enum_integer(*u));
+				Unit = magic_enum::enum_name(*u);
+			}
+		}
+	}
+
+	FileDialog::FileData::FileData(const std::filesystem::path& path) 
+	{
 		std::error_code ec;
 		Path = path;
 		IsDirectory = std::filesystem::is_directory(path, ec);
-		Size = std::filesystem::file_size(path, ec);
+		Size = SmartSize{std::filesystem::file_size(path, ec)};
 
 		struct stat attr;
 		stat(path.u8string().c_str(), &attr);
@@ -1263,7 +1288,9 @@ namespace ifd {
 
 					// size
 					ImGui::TableSetColumnIndex(2);
-					ImGui::Text("%.3f KiB", entry.Size/1024.0f);
+					if (!entry.IsDirectory) {
+						ImGui::Text("%.3f %s", entry.Size.Size, entry.Size.Unit.c_str());
+					}
 				}
 
 				ImGui::EndTable();

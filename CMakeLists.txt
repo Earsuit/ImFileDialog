@@ -21,6 +21,7 @@ SET(IMGUI_SRC
 
 include_directories(external/imgui)
 include_directories(external/stb)
+include_directories(external/magic_enum/include)
 
 # cmake toolchain
 if(CMAKE_TOOLCHAIN_FILE)

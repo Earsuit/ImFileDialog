@@ -1,4 +1,5 @@
 #pragma once
+
 #include <ctime>
 #include <stack>
 #include <string>
@@ -74,12 +75,46 @@ namespace ifd {
 			std::vector<FileTreeNode*> Children;
 		};
 
+		struct SmartSize {
+			SmartSize() = default;
+			SmartSize(size_t s);
+
+			bool operator<(const SmartSize& other) const
+			{
+				return SizeInByte < other.SizeInByte;
+			}
+
+			bool operator<=(const SmartSize& other) const
+			{
+				return SizeInByte <= other.SizeInByte;
+			}
+
+			bool operator==(const SmartSize& other) const
+			{
+				return SizeInByte == other.SizeInByte;
+			}
+
+			bool operator>(const SmartSize& other) const
+			{
+				return SizeInByte > other.SizeInByte;
+			}
+
+			bool operator>=(const SmartSize& other) const
+			{
+				return SizeInByte >= other.SizeInByte;
+			}
+
+			size_t SizeInByte;
+			float Size;
+			std::string Unit;
+		};
+
 		struct FileData {
 			FileData(const std::filesystem::path& path);
 
 			std::filesystem::path Path;
 			bool IsDirectory;
-			size_t Size;
+			SmartSize Size;
 			time_t DateModified;
 
 			bool HasIconPreview;
