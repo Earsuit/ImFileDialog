@@ -480,8 +480,6 @@ namespace ifd {
 		m_newEntryBuffer[0] = 0;
 		m_selectedFileItem = -1;
 		m_zoom = 1.0f;
-
-		m_previewLoader = nullptr;
 		m_previewLoaderRunning = false;
 
 		m_setDirectory(std::filesystem::current_path(), false);
@@ -962,6 +960,7 @@ namespace ifd {
 #endif
 		return m_icons[pathU8];
 	}
+
 	void FileDialog::m_clearIcons()
 	{
 		std::vector<unsigned int> deletedIcons;
@@ -978,16 +977,19 @@ namespace ifd {
 
 		m_icons.clear();
 	}
+
 	void FileDialog::m_refreshIconPreview()
 	{
 		if (m_zoom >= 5.0f) {
-			if (m_previewLoader == nullptr) {
+			if (!m_previewLoader.joinable()) {
 				m_previewLoaderRunning = true;
-				m_previewLoader = new std::thread(&FileDialog::m_loadPreview, this);
+				m_previewLoader = std::thread(&FileDialog::m_loadPreview, this);
 			}
-		} else
+		} else {
 			m_clearIconPreview();
+		}
 	}
+
 	void FileDialog::m_clearIconPreview()
 	{
 		m_stopPreviewLoader();
@@ -1005,18 +1007,16 @@ namespace ifd {
 			}
 		}
 	}
+
 	void FileDialog::m_stopPreviewLoader()
 	{
-		if (m_previewLoader != nullptr) {
-			m_previewLoaderRunning = false;
+		m_previewLoaderRunning = false;
 
-			if (m_previewLoader && m_previewLoader->joinable())
-				m_previewLoader->join();
-
-			delete m_previewLoader;
-			m_previewLoader = nullptr;
+		if (m_previewLoader.joinable()) {
+			m_previewLoader.join();
 		}
 	}
+
 	void FileDialog::m_loadPreview()
 	{
 		for (size_t i = 0; m_previewLoaderRunning && i < m_content.size(); i++) {
@@ -1044,6 +1044,7 @@ namespace ifd {
 
 		m_previewLoaderRunning = false;
 	}
+
 	void FileDialog::m_clearTree(FileTreeNode* node)
 	{
 		if (node == nullptr)
@@ -1055,6 +1056,7 @@ namespace ifd {
 		delete node;
 		node = nullptr;
 	}
+
 	void FileDialog::m_setDirectory(const std::filesystem::path& p, bool addHistory)
 	{
 		bool isSameDir = m_currentDirectory == p;

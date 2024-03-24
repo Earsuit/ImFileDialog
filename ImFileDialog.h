@@ -156,7 +156,7 @@ namespace ifd {
 		void m_refreshIconPreview();
 		void m_clearIconPreview();
 
-		std::thread* m_previewLoader;
+		std::thread m_previewLoader;
 		bool m_previewLoaderRunning;
 		void m_stopPreviewLoader();
 		void m_loadPreview();
