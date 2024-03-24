@@ -485,9 +485,8 @@ namespace ifd {
 		m_setDirectory(std::filesystem::current_path(), false);
 
 		// favorites are available on every OS
-		FileTreeNode* quickAccess = new FileTreeNode("Quick Access");
+		auto quickAccess = std::make_unique<FileTreeNode>("Quick Access");
 		quickAccess->read = true;
-		m_treeCache.push_back(quickAccess);
 
 #ifdef _WIN32
 		wchar_t username[UNLEN + 1] = { 0 };
@@ -497,31 +496,32 @@ namespace ifd {
 		std::wstring userPath = L"C:\\Users\\" + std::wstring(username) + L"\\";
 
 		// Quick Access / Bookmarks
-		quickAccess->children.push_back(new FileTreeNode(userPath + L"Desktop"));
-		quickAccess->children.push_back(new FileTreeNode(userPath + L"Documents"));
-		quickAccess->children.push_back(new FileTreeNode(userPath + L"Downloads"));
-		quickAccess->children.push_back(new FileTreeNode(userPath + L"Pictures"));
+		quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Desktop"));
+		quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Documents"));
+		quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Downloads"));
+		quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Pictures"));
+		m_treeCache.emplace_back(std::move(quickAccess));
 
 		// OneDrive
-		FileTreeNode* oneDrive = new FileTreeNode(userPath + L"OneDrive");
-		m_treeCache.push_back(oneDrive);
+		auto oneDrive = std::make_unique<FileTreeNode>(userPath + L"OneDrive");
+		m_treeCache.emplace_back(oneDrive);
 
 		// This PC
-		FileTreeNode* thisPC = new FileTreeNode("This PC");
+		auto thisPC = std::make_unique<FileTreeNode>("This PC");
 		thisPC->Read = true;
 		if (std::filesystem::exists(userPath + L"3D Objects"))
-			thisPC->children.push_back(new FileTreeNode(userPath + L"3D Objects"));
-		thisPC->children.push_back(new FileTreeNode(userPath + L"Desktop"));
-		thisPC->children.push_back(new FileTreeNode(userPath + L"Documents"));
-		thisPC->children.push_back(new FileTreeNode(userPath + L"Downloads"));
-		thisPC->children.push_back(new FileTreeNode(userPath + L"Music"));
-		thisPC->children.push_back(new FileTreeNode(userPath + L"Pictures"));
-		thisPC->children.push_back(new FileTreeNode(userPath + L"Videos"));
+			thisPC->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"3D Objects"));
+		thisPC->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Desktop"));
+		thisPC->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Documents"));
+		thisPC->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Downloads"));
+		thisPC->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Music"));
+		thisPC->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Pictures"));
+		thisPC->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"Videos"));
 		DWORD d = GetLogicalDrives();
 		for (int i = 0; i < 26; i++)
 			if (d & (1 << i))
-				thisPC->children.push_back(new FileTreeNode(std::string(1, 'A' + i) + ":"));
-		m_treeCache.push_back(thisPC);
+				thisPC->children.emplace_back(std::make_unique<FileTreeNode>(std::string(1, 'A' + i) + ":"));
+		m_treeCache.emplace_back(std::move(thisPC));
 #else
 		std::error_code ec;
 
@@ -533,36 +533,43 @@ namespace ifd {
 		if (pw) {
 			std::string homePath = "/home/" + std::string(pw->pw_name);
 			
-			if (std::filesystem::exists(homePath, ec))
-				quickAccess->children.push_back(new FileTreeNode(homePath));
-			if (std::filesystem::exists(homePath + "/Desktop", ec))
-				quickAccess->children.push_back(new FileTreeNode(homePath + "/Desktop"));
-			if (std::filesystem::exists(homePath + "/Documents", ec))
-				quickAccess->children.push_back(new FileTreeNode(homePath + "/Documents"));
-			if (std::filesystem::exists(homePath + "/Downloads", ec))
-				quickAccess->children.push_back(new FileTreeNode(homePath + "/Downloads"));
-			if (std::filesystem::exists(homePath + "/Pictures", ec))
-				quickAccess->children.push_back(new FileTreeNode(homePath + "/Pictures"));
+			if (std::filesystem::exists(homePath, ec)) {
+				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath));
+			}
+				
+			if (std::filesystem::exists(homePath + "/Desktop", ec)) {
+				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath + "/Desktop"));
+			}
+				
+			if (std::filesystem::exists(homePath + "/Documents", ec)) {
+				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath + "/Documents"));
+			}
+				
+			if (std::filesystem::exists(homePath + "/Downloads", ec)) {
+				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath + "/Downloads"));
+			}
+				
+			if (std::filesystem::exists(homePath + "/Pictures", ec)) {
+				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath + "/Pictures"));
+			}
 		}
 
+		m_treeCache.emplace_back(std::move(quickAccess));
+
 		// This PC
-		FileTreeNode* thisPC = new FileTreeNode("This PC");
+		auto thisPC = std::make_unique<FileTreeNode>("This PC");
 		thisPC->read = true;
 		for (const auto& entry : std::filesystem::directory_iterator("/", ec)) {
 			if (std::filesystem::is_directory(entry, ec))
-				thisPC->children.push_back(new FileTreeNode(entry.path().u8string()));
+				thisPC->children.emplace_back(std::make_unique<FileTreeNode>(entry.path().u8string()));
 		}
-		m_treeCache.push_back(thisPC);
+		m_treeCache.emplace_back(std::move(thisPC));
 #endif
 	}
 
 	FileDialog::~FileDialog() {
 		m_clearIconPreview();
 		m_clearIcons();
-
-		for (auto fn : m_treeCache)
-			m_clearTree(fn);
-		m_treeCache.clear();
 	}
 
 	bool FileDialog::save(const std::string& key, const std::string& title, const std::string& filter, const std::string& startingDir)
@@ -641,13 +648,10 @@ namespace ifd {
 		m_backHistory = std::stack<std::filesystem::path>();
 		m_forwardHistory = std::stack<std::filesystem::path>();
 
-		// clear the tree
-		for (auto fn : m_treeCache) {
-			for (auto item : fn->children) {
-				for (auto ch : item->children)
-					m_clearTree(ch);
-				item->children.clear();
-				item->read = false;
+		for (auto& node : m_treeCache) {
+			for (auto& child : node->children) {
+				child->children.clear();
+				child->read = false;
 			}
 		}
 
@@ -688,7 +692,7 @@ namespace ifd {
 		// add to sidebar
 		for (auto& p : m_treeCache)
 			if (p->path == "Quick Access") {
-				p->children.push_back(new FileTreeNode(path));
+				p->children.emplace_back(std::make_unique<FileTreeNode>(path));
 				break;
 			}
 	}
@@ -1045,18 +1049,6 @@ namespace ifd {
 		m_previewLoaderRunning = false;
 	}
 
-	void FileDialog::m_clearTree(FileTreeNode* node)
-	{
-		if (node == nullptr)
-			return;
-
-		for (auto n : node->children)
-			m_clearTree(n);
-
-		delete node;
-		node = nullptr;
-	}
-
 	void FileDialog::m_setDirectory(const std::filesystem::path& p, bool addHistory)
 	{
 		bool isSameDir = m_currentDirectory == p;
@@ -1203,34 +1195,34 @@ namespace ifd {
 		}
 	}
 
-	void FileDialog::m_renderTree(FileTreeNode* node)
+	void FileDialog::m_renderTree(FileTreeNode& node)
 	{
 		// directory
 		std::error_code ec;
-		ImGui::PushID(node);
+		ImGui::PushID(node.path.u8string().c_str());
 		bool isClicked = false;
-		std::string displayName = node->path.stem().u8string();
+		std::string displayName = node.path.stem().u8string();
 		if (displayName.size() == 0)
-			displayName = node->path.u8string();
-		if (folderNode(displayName.c_str(), (ImTextureID)m_getIcon(node->path), isClicked)) {
-			if (!node->read) {
+			displayName = node.path.u8string();
+		if (folderNode(displayName.c_str(), (ImTextureID)m_getIcon(node.path), isClicked)) {
+			if (!node.read) {
 				// cache children if it's not already cached
-				if (std::filesystem::exists(node->path, ec))
-					for (const auto& entry : std::filesystem::directory_iterator(node->path, ec)) {
+				if (std::filesystem::exists(node.path, ec))
+					for (const auto& entry : std::filesystem::directory_iterator(node.path, ec)) {
 						if (std::filesystem::is_directory(entry, ec))
-							node->children.push_back(new FileTreeNode(entry.path().u8string()));
+							node.children.emplace_back(std::make_unique<FileTreeNode>(entry.path().u8string()));
 					}
-				node->read = true;
+				node.read = true;
 			}
 
 			// display children
-			for (auto c : node->children)
-				m_renderTree(c);
+			for (auto& c : node.children)
+				m_renderTree(*c);
 
 			ImGui::TreePop();
 		}
 		if (isClicked)
-			m_setDirectory(node->path);
+			m_setDirectory(node.path);
 		ImGui::PopID();
 	}
 
@@ -1490,8 +1482,8 @@ namespace ifd {
 			// the tree on the left side
 			ImGui::TableSetColumnIndex(0);
 			ImGui::BeginChild("##treeContainer", ImVec2(0, -bottomBarHeight));
-			for (auto node : m_treeCache)
-				m_renderTree(node);
+			for (auto& node : m_treeCache)
+				m_renderTree(*node);
 			ImGui::EndChild();
 			
 			// content on the right side

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <ctime>
 #include <stack>
 #include <string>
@@ -72,7 +73,7 @@ namespace ifd {
 
 			std::filesystem::path path;
 			bool read;
-			std::vector<FileTreeNode*> children;
+			std::vector<std::unique_ptr<FileTreeNode>> children;
 		};
 
 		struct SmartSize {
@@ -161,9 +162,8 @@ namespace ifd {
 		void m_stopPreviewLoader();
 		void m_loadPreview();
 
-		std::vector<FileTreeNode*> m_treeCache;
-		void m_clearTree(FileTreeNode* node);
-		void m_renderTree(FileTreeNode* node);
+		std::vector<std::unique_ptr<FileTreeNode>> m_treeCache;
+		void m_renderTree(FileTreeNode& node);
 
 		unsigned int m_sortColumn;
 		unsigned int m_sortDirection;
