@@ -103,23 +103,32 @@ int main(int argc, char* argv[])
 
 		// Simple window
 		ImGui::Begin("Control Panel");
-		if (ImGui::Button("Open file"))
+	
+		if (ImGui::Button("Open file")) {
 			ifd::FileDialog::getInstance().open("ShaderOpenDialog", "Open a shader", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", true);
-		if (ImGui::Button("Open directory"))
+		}
+	
+		if (ImGui::Button("Open directory")) {
 			ifd::FileDialog::getInstance().open("DirectoryOpenDialog", "Open a directory", "");
-		if (ImGui::Button("Save file"))
+		}
+
+		if (ImGui::Button("Save file")) {
 			ifd::FileDialog::getInstance().save("ShaderSaveDialog", "Save a shader", "*.sprj {.sprj}");
+		}
+
 		ImGui::End();
 
 		// file dialogs
 		if (ifd::FileDialog::getInstance().isDone("ShaderOpenDialog")) {
 			if (ifd::FileDialog::getInstance().hasResult()) {
 				const std::vector<std::filesystem::path>& res = ifd::FileDialog::getInstance().getResults();
-				for (const auto& r : res) // ShaderOpenDialog supports multiselection
+				for (const auto& r : res) {// ShaderOpenDialog supports multiselection
 					printf("OPEN[%s]\n", r.u8string().c_str());
+				}
 			}
 			ifd::FileDialog::getInstance().close();
 		}
+
 		if (ifd::FileDialog::getInstance().isDone("DirectoryOpenDialog")) {
 			if (ifd::FileDialog::getInstance().hasResult()) {
 				std::string res = ifd::FileDialog::getInstance().getResult().u8string();
@@ -127,6 +136,7 @@ int main(int argc, char* argv[])
 			}
 			ifd::FileDialog::getInstance().close();
 		}
+
 		if (ifd::FileDialog::getInstance().isDone("ShaderSaveDialog")) {
 			if (ifd::FileDialog::getInstance().hasResult()) {
 				std::string res = ifd::FileDialog::getInstance().getResult().u8string();
