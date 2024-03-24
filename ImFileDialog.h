@@ -23,7 +23,7 @@ namespace ifd {
 
 	class FileDialog {
 	public:
-		static inline FileDialog& Instance()
+		static inline FileDialog& getInstance()
 		{
 			static FileDialog ret;
 			return ret;
@@ -31,48 +31,48 @@ namespace ifd {
 
 		~FileDialog();
 
-		bool Save(const std::string& key, const std::string& title, const std::string& filter, const std::string& startingDir = "");
+		bool save(const std::string& key, const std::string& title, const std::string& filter, const std::string& startingDir = "");
 
-		bool Open(const std::string& key, const std::string& title, const std::string& filter, bool isMultiselect = false, const std::string& startingDir = "");
+		bool open(const std::string& key, const std::string& title, const std::string& filter, bool isMultiselect = false, const std::string& startingDir = "");
 
-		bool IsDone(const std::string& key);
+		bool isDone(const std::string& key);
 
-		inline bool HasResult() { return m_result.size(); }
-		inline const std::filesystem::path& GetResult() { return m_result[0]; }
-		inline const std::vector<std::filesystem::path>& GetResults() { return m_result; }
+		inline bool hasResult() { return m_result.size(); }
+		inline const std::filesystem::path& getResult() { return m_result[0]; }
+		inline const std::vector<std::filesystem::path>& getResults() { return m_result; }
 
-		void Close();
+		void close();
 
-		void RemoveFavorite(const std::string& path);
-		void AddFavorite(const std::string& path);
-		inline const std::vector<std::string>& GetFavorites() { return m_favorites; }
+		void removeFavorite(const std::string& path);
+		void addFavorite(const std::string& path);
+		inline const std::vector<std::string>& getFavorites() { return m_favorites; }
 
-		inline void SetZoom(float z) { 
+		inline void setZoom(float z) { 
 			m_zoom = std::min<float>(25.0f, std::max<float>(1.0f, z)); 
 			m_refreshIconPreview();
 		}
-		inline float GetZoom() { return m_zoom; }
+		inline float getZoom() { return m_zoom; }
 
-		std::function<void*(const uint8_t*, int, int, Format)> CreateTexture;
-		std::function<void(void*)> DeleteTexture;
+		std::function<void*(const uint8_t*, int, int, Format)> createTexture;
+		std::function<void(void*)> deleteTexture;
 
 	private:
 		struct FileTreeNode {
 #ifdef _WIN32
 			FileTreeNode(const std::wstring& path) {
-				Path = std::filesystem::path(path);
-				Read = false;
+				this->path = std::filesystem::path(path);
+				read = false;
 			}
 #endif
 
 			FileTreeNode(const std::string& path) {
-				Path = std::filesystem::u8path(path);
-				Read = false;
+				this->path = std::filesystem::u8path(path);
+				read = false;
 			}
 
-			std::filesystem::path Path;
-			bool Read;
-			std::vector<FileTreeNode*> Children;
+			std::filesystem::path path;
+			bool read;
+			std::vector<FileTreeNode*> children;
 		};
 
 		struct SmartSize {
@@ -81,46 +81,46 @@ namespace ifd {
 
 			bool operator<(const SmartSize& other) const
 			{
-				return SizeInByte < other.SizeInByte;
+				return sizeInByte < other.sizeInByte;
 			}
 
 			bool operator<=(const SmartSize& other) const
 			{
-				return SizeInByte <= other.SizeInByte;
+				return sizeInByte <= other.sizeInByte;
 			}
 
 			bool operator==(const SmartSize& other) const
 			{
-				return SizeInByte == other.SizeInByte;
+				return sizeInByte == other.sizeInByte;
 			}
 
 			bool operator>(const SmartSize& other) const
 			{
-				return SizeInByte > other.SizeInByte;
+				return sizeInByte > other.sizeInByte;
 			}
 
 			bool operator>=(const SmartSize& other) const
 			{
-				return SizeInByte >= other.SizeInByte;
+				return sizeInByte >= other.sizeInByte;
 			}
 
-			size_t SizeInByte;
-			float Size;
-			std::string Unit;
+			size_t sizeInByte;
+			float size;
+			std::string unit;
 		};
 
 		struct FileData {
 			FileData(const std::filesystem::path& path);
 
-			std::filesystem::path Path;
-			bool IsDirectory;
-			SmartSize Size;
-			time_t DateModified;
+			std::filesystem::path path;
+			bool isDirectory;
+			SmartSize size;
+			time_t dateModified;
 
-			bool HasIconPreview;
-			void* IconPreview;
-			uint8_t* IconPreviewData;
-			int IconPreviewWidth, IconPreviewHeight;
+			bool hasIconPreview;
+			void* iconPreview;
+			uint8_t* iconPreviewData;
+			int iconPreviewWidth, iconPreviewHeight;
 		};
 
 		std::string m_currentKey;

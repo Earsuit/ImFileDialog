@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
     ImGui_ImplOpenGL3_Init(glslVersion);
 
 	// ImFileDialog requires you to set the CreateTexture and DeleteTexture
-	ifd::FileDialog::Instance().CreateTexture = [](const uint8_t* data, int w, int h, ifd::Format fmt) -> void* {
+	ifd::FileDialog::getInstance().createTexture = [](const uint8_t* data, int w, int h, ifd::Format fmt) -> void* {
 		GLuint tex;
 
 		glGenTextures(1, &tex);
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 		return reinterpret_cast<void*>(tex);
 	};
 
-	ifd::FileDialog::Instance().DeleteTexture = [](void* tex) {
+	ifd::FileDialog::getInstance().deleteTexture = [](void* tex) {
 		GLuint texID = (GLuint)((uintptr_t)tex);
 		glDeleteTextures(1, &texID);
 	};
@@ -104,35 +104,35 @@ int main(int argc, char* argv[])
 		// Simple window
 		ImGui::Begin("Control Panel");
 		if (ImGui::Button("Open file"))
-			ifd::FileDialog::Instance().Open("ShaderOpenDialog", "Open a shader", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", true);
+			ifd::FileDialog::getInstance().open("ShaderOpenDialog", "Open a shader", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", true);
 		if (ImGui::Button("Open directory"))
-			ifd::FileDialog::Instance().Open("DirectoryOpenDialog", "Open a directory", "");
+			ifd::FileDialog::getInstance().open("DirectoryOpenDialog", "Open a directory", "");
 		if (ImGui::Button("Save file"))
-			ifd::FileDialog::Instance().Save("ShaderSaveDialog", "Save a shader", "*.sprj {.sprj}");
+			ifd::FileDialog::getInstance().save("ShaderSaveDialog", "Save a shader", "*.sprj {.sprj}");
 		ImGui::End();
 
 		// file dialogs
-		if (ifd::FileDialog::Instance().IsDone("ShaderOpenDialog")) {
-			if (ifd::FileDialog::Instance().HasResult()) {
-				const std::vector<std::filesystem::path>& res = ifd::FileDialog::Instance().GetResults();
+		if (ifd::FileDialog::getInstance().isDone("ShaderOpenDialog")) {
+			if (ifd::FileDialog::getInstance().hasResult()) {
+				const std::vector<std::filesystem::path>& res = ifd::FileDialog::getInstance().getResults();
 				for (const auto& r : res) // ShaderOpenDialog supports multiselection
 					printf("OPEN[%s]\n", r.u8string().c_str());
 			}
-			ifd::FileDialog::Instance().Close();
+			ifd::FileDialog::getInstance().close();
 		}
-		if (ifd::FileDialog::Instance().IsDone("DirectoryOpenDialog")) {
-			if (ifd::FileDialog::Instance().HasResult()) {
-				std::string res = ifd::FileDialog::Instance().GetResult().u8string();
+		if (ifd::FileDialog::getInstance().isDone("DirectoryOpenDialog")) {
+			if (ifd::FileDialog::getInstance().hasResult()) {
+				std::string res = ifd::FileDialog::getInstance().getResult().u8string();
 				printf("DIRECTORY[%s]\n", res.c_str());
 			}
-			ifd::FileDialog::Instance().Close();
+			ifd::FileDialog::getInstance().close();
 		}
-		if (ifd::FileDialog::Instance().IsDone("ShaderSaveDialog")) {
-			if (ifd::FileDialog::Instance().HasResult()) {
-				std::string res = ifd::FileDialog::Instance().GetResult().u8string();
+		if (ifd::FileDialog::getInstance().isDone("ShaderSaveDialog")) {
+			if (ifd::FileDialog::getInstance().hasResult()) {
+				std::string res = ifd::FileDialog::getInstance().getResult().u8string();
 				printf("SAVE[%s]\n", res.c_str());
 			}
-			ifd::FileDialog::Instance().Close();
+			ifd::FileDialog::getInstance().close();
 		}
 
 
