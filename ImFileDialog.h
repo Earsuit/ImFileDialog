@@ -49,7 +49,7 @@ namespace ifd {
 		inline const std::vector<std::string>& getFavorites() { return m_favorites; }
 
 		inline void setZoom(float z) { 
-			m_zoom = std::min<float>(25.0f, std::max<float>(1.0f, z)); 
+			m_zoom = std::min(MAX_ZOOM_LEVEL, std::max(MIN_ZOOM_LEVEL, z)); 
 			m_refreshIconPreview();
 		}
 		inline float getZoom() { return m_zoom; }
@@ -58,6 +58,9 @@ namespace ifd {
 		std::function<void(void*)> deleteTexture;
 
 	private:
+		static constexpr auto MAX_ZOOM_LEVEL = 25.0f;
+		static constexpr auto MIN_ZOOM_LEVEL = 1.0f;
+
 		struct FileTreeNode {
 #ifdef _WIN32
 			FileTreeNode(const std::wstring& path) {

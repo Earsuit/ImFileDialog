@@ -40,6 +40,9 @@ namespace ifd {
 	constexpr auto DEFAULT_ICON_CHANNELS = 4;
 	constexpr auto RGB_MASK = 0xFFFFFFU;
 	constexpr auto ALPHA_MASK = 0xFF000000U;
+	constexpr auto MOUSE_WHEEL_NOT_SCROLLING = 0.0f;
+	constexpr auto ZOOM_LEVEL_RENDER_PREVIEW = 5.0f;
+	constexpr auto ZOOM_LEVEL_LIST_VIEW = 1.0f;
 
 	enum class SizeUnit : uint8_t {
 		B = 0,
@@ -525,7 +528,7 @@ namespace ifd {
 		m_newEntryBuffer.clear();
 		m_searchBuffer.clear();
 		m_selectedFileItem = -1;
-		m_zoom = 1.0f;
+		m_zoom = MIN_ZOOM_LEVEL;
 		m_previewLoaderRunning = false;
 
 		m_setDirectory(std::filesystem::current_path(), false);
@@ -1064,7 +1067,7 @@ namespace ifd {
 
 	void FileDialog::m_refreshIconPreview()
 	{
-		if (m_zoom >= 5.0f) {
+		if (m_zoom >= ZOOM_LEVEL_RENDER_PREVIEW) {
 			if (!m_previewLoader.joinable()) {
 				m_previewLoaderRunning = true;
 				m_previewLoader = std::thread(&FileDialog::m_loadPreview, this);
@@ -1338,7 +1341,7 @@ namespace ifd {
 		}
 
 		// table view
-		if (m_zoom == 1.0f) {
+		if (m_zoom == ZOOM_LEVEL_LIST_VIEW) {
 			if (ImGui::BeginTable("##contentTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_NoBordersInBody, ImVec2(0, -FLT_MIN))) {
 				// header
 				ImGui::TableSetupColumn("Name##filename", ImGuiTableColumnFlags_WidthStretch, 0.0f -1.0f, 0);
@@ -1641,8 +1644,8 @@ namespace ifd {
 			ImGui::BeginChild("##contentContainer", ImVec2(0, -bottomBarHeight));
 				m_renderContent();
 			ImGui::EndChild();
-			if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != 0.0f) {
-				m_zoom = std::min<float>(25.0f, std::max<float>(1.0f, m_zoom + ImGui::GetIO().MouseWheel));
+			if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != MOUSE_WHEEL_NOT_SCROLLING) {
+				m_zoom = std::min(MAX_ZOOM_LEVEL, std::max(MIN_ZOOM_LEVEL, m_zoom + ImGui::GetIO().MouseWheel));
 				m_refreshIconPreview();
 			}
 
@@ -1651,8 +1654,6 @@ namespace ifd {
 
 			ImGui::EndTable();
 		}
-
-
 		
 		/***** BOTTOM BAR *****/
 		ImGui::Text("File name:");
