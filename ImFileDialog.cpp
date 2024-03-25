@@ -6,6 +6,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -211,7 +212,7 @@ namespace ifd {
 		return ret;
 	}
 
-	bool pathBox(const char* label, std::filesystem::path& path, char* pathBuffer, ImVec2 size_arg) {
+	bool pathBox(const char* label, std::filesystem::path& path, std::string& pathBuffer, ImVec2 size_arg) {
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 
 		if (window->SkipItems) {
@@ -309,7 +310,7 @@ namespace ifd {
 
 			// click state
 			if (!anyOtherHC && clicked) {
-				strcpy(pathBuffer, path.u8string().c_str());
+				pathBuffer = path.u8string();
 				*state |= 0b001;
 				*state &= 0b011; // remove SetKeyboardFocus flag
 			} else {
@@ -342,11 +343,9 @@ namespace ifd {
 				}
 			}
 
-			if (ImGui::InputTextEx("##pathbox_input", "", pathBuffer, 1024, size_arg, ImGuiInputTextFlags_EnterReturnsTrue)) {
-				std::string tempStr(pathBuffer);
-
-				if (std::filesystem::exists(tempStr)) {
-					path = std::filesystem::u8path(tempStr);
+			if (ImGui::InputTextWithHint("##pathbox_input", "", &pathBuffer, ImGuiInputTextFlags_EnterReturnsTrue)) {
+				if (std::filesystem::exists(pathBuffer)) {
+					path = std::filesystem::u8path(pathBuffer);
 				}
 
 				ret = true;
@@ -521,10 +520,10 @@ namespace ifd {
 		m_sortColumn = 0;
 		m_sortDirection = ImGuiSortDirection_Ascending;
 		m_filterSelection = 0;
-		m_inputTextbox[0] = 0;
-		m_pathBuffer[0] = 0;
-		m_searchBuffer[0] = 0;
-		m_newEntryBuffer[0] = 0;
+		m_inputTextbox.clear();
+		m_pathBuffer.clear();
+		m_newEntryBuffer.clear();
+		m_searchBuffer.clear();
 		m_selectedFileItem = -1;
 		m_zoom = 1.0f;
 		m_previewLoaderRunning = false;
@@ -637,7 +636,7 @@ namespace ifd {
 		m_isOpen = true;
 		m_calledOpenPopup = false;
 		m_result.clear();
-		m_inputTextbox[0] = 0;
+		m_inputTextbox = "";
 		m_selections.clear();
 		m_selectedFileItem = -1;
 		m_isMultiselect = false;
@@ -664,7 +663,7 @@ namespace ifd {
 		m_isOpen = true;
 		m_calledOpenPopup = false;
 		m_result.clear();
-		m_inputTextbox[0] = 0;
+		m_inputTextbox = "";
 		m_selections.clear();
 		m_selectedFileItem = -1;
 		m_isMultiselect = isMultiselect;
@@ -775,12 +774,10 @@ namespace ifd {
 		}
 
 		if (m_selections.size() == 1) {
-			std::string filename = m_selections[0].filename().u8string();
-			if (filename.size() == 0) {
-				filename = m_selections[0].u8string(); // drive
+			m_inputTextbox = m_selections[0].filename().u8string();
+			if (m_inputTextbox.size() == 0) {
+				m_inputTextbox = m_selections[0].u8string(); // drive
 			}
-
-			strcpy(m_inputTextbox, filename.c_str());
 		} else {
 			std::string textboxVal = "";
 			for (const auto& sel : m_selections) {
@@ -791,7 +788,8 @@ namespace ifd {
 
 				textboxVal += "\"" + filename + "\", ";
 			}
-			strcpy(m_inputTextbox, textboxVal.substr(0, textboxVal.size() - 2).c_str());
+
+			m_inputTextbox = textboxVal.substr(0, textboxVal.size() - 2).c_str();
 		}
 	}
 
@@ -1155,13 +1153,13 @@ namespace ifd {
 		m_selectedFileItem = -1;
 		
 		if (m_type == IFD_DIALOG_DIRECTORY || m_type == IFD_DIALOG_FILE) {
-			m_inputTextbox[0] = 0;
+			m_inputTextbox = "";
 		}
 
 		m_selections.clear();
 
 		if (!isSameDir) {
-			m_searchBuffer[0] = 0;
+			m_searchBuffer.clear();
 			m_clearIcons();
 		}
 
@@ -1193,11 +1191,11 @@ namespace ifd {
 					}
 
 					// check if filename matches search query
-					if (m_searchBuffer[0]) {
+					if (!m_searchBuffer.empty()) {
 						std::string filename = info.path.u8string();
 
 						std::string filenameSearch = filename;
-						std::string query(m_searchBuffer);
+						std::string query = m_searchBuffer;
 						std::transform(filenameSearch.begin(), filenameSearch.end(), filenameSearch.begin(), ::tolower);
 						std::transform(query.begin(), query.end(), query.begin(), ::tolower);
 
@@ -1514,42 +1512,42 @@ namespace ifd {
 
 		if (ImGui::BeginPopupModal("Enter file name##newfile")) {
 			ImGui::PushItemWidth(250.0f);
-			ImGui::InputText("##newfilename", m_newEntryBuffer, 1024); // TODO: remove hardcoded literals
+			ImGui::InputText("##newfilename", &m_newEntryBuffer);
 			ImGui::PopItemWidth();
 
 			if (ImGui::Button("OK")) {
-				std::ofstream out((m_currentDirectory / std::string(m_newEntryBuffer)).string());
+				std::ofstream out((m_currentDirectory / m_newEntryBuffer).string());
 				out << "";
 				out.close();
 
 				m_setDirectory(m_currentDirectory, false); // refresh
-				m_newEntryBuffer[0] = 0;
+				m_newEntryBuffer.clear();
 
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) {
-				m_newEntryBuffer[0] = 0;
+				m_newEntryBuffer.clear();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
 		}
 		if (ImGui::BeginPopupModal("Enter directory name##newdir")) {
 			ImGui::PushItemWidth(250.0f);
-			ImGui::InputText("##newfilename", m_newEntryBuffer, 1024); // TODO: remove hardcoded literals
+			ImGui::InputText("##newfilename", &m_newEntryBuffer); // TODO: remove hardcoded literals
 			ImGui::PopItemWidth();
 
 			if (ImGui::Button("OK")) {
 				std::error_code ec;
-				std::filesystem::create_directory(m_currentDirectory / std::string(m_newEntryBuffer), ec);
+				std::filesystem::create_directory(m_currentDirectory / m_newEntryBuffer, ec);
 				m_setDirectory(m_currentDirectory, false); // refresh
-				m_newEntryBuffer[0] = 0;
+				m_newEntryBuffer.clear();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) {
 				ImGui::CloseCurrentPopup();
-				m_newEntryBuffer[0] = 0;
+				m_newEntryBuffer.clear();
 			}
 			ImGui::EndPopup();
 		}
@@ -1619,8 +1617,7 @@ namespace ifd {
 		ImGui::SameLine();
 		ImGui::PopStyleColor();
 
-		if (ImGui::InputTextEx("##searchTB", "Search", m_searchBuffer, 128, ImVec2(-FLT_MIN, computeGuiElementSize(GImGui->FontSize)), 0)) {
-			// TODO: no hardcoded literals
+		if (ImGui::InputTextWithHint("##searchTB", "Search", &m_searchBuffer)) {
 			m_setDirectory(m_currentDirectory, false); // refresh
 		}
 
@@ -1660,8 +1657,8 @@ namespace ifd {
 		/***** BOTTOM BAR *****/
 		ImGui::Text("File name:");
 		ImGui::SameLine();
-		if (ImGui::InputTextEx("##file_input", "Filename", m_inputTextbox, 1024, ImVec2((m_type != IFD_DIALOG_DIRECTORY) ? -250.0f : -FLT_MIN, 0), ImGuiInputTextFlags_EnterReturnsTrue)) {
-			bool success = m_finalize(std::string(m_inputTextbox));
+		if (ImGui::InputTextWithHint("##file_input", "Filename", &m_inputTextbox, ImGuiInputTextFlags_EnterReturnsTrue)) {
+			bool success = m_finalize(m_inputTextbox);
 #ifdef _WIN32
 			if (!success)
 				MessageBeep(MB_ICONERROR);
@@ -1684,10 +1681,9 @@ namespace ifd {
 		float ok_cancel_width = computeGuiElementSize(GImGui->FontSize) * 7;
 		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ok_cancel_width);
 		if (ImGui::Button(m_type == IFD_DIALOG_SAVE ? "Save" : "Open", ImVec2(ok_cancel_width / 2 - ImGui::GetStyle().ItemSpacing.x, 0.0f))) {
-			std::string filename(m_inputTextbox);
 			bool success = false;
-			if (!filename.empty() || m_type == IFD_DIALOG_DIRECTORY) {
-				success = m_finalize(filename);
+			if (!m_inputTextbox.empty() || m_type == IFD_DIALOG_DIRECTORY) {
+				success = m_finalize(m_inputTextbox);
 			}
 #ifdef _WIN32
 			if (!success) {

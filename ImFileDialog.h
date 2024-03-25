@@ -110,10 +110,10 @@ namespace ifd {
 		bool m_isMultiselect;
 		bool m_isOpen;
 		uint8_t m_type;
-		char m_inputTextbox[1024];
-		char m_pathBuffer[1024];
-		char m_newEntryBuffer[1024];
-		char m_searchBuffer[128];
+		std::string m_inputTextbox;
+		std::string m_pathBuffer;
+		std::string m_newEntryBuffer;
+		std::string m_searchBuffer;
 		std::vector<std::string> m_favorites;
 		bool m_calledOpenPopup;
 		std::stack<std::filesystem::path> m_backHistory, m_forwardHistory;
