@@ -80,29 +80,9 @@ namespace ifd {
 			SmartSize() = default;
 			SmartSize(size_t s);
 
-			bool operator<(const SmartSize& other) const
+			auto operator<=>(const SmartSize& others) const noexcept
 			{
-				return sizeInByte < other.sizeInByte;
-			}
-
-			bool operator<=(const SmartSize& other) const
-			{
-				return sizeInByte <= other.sizeInByte;
-			}
-
-			bool operator==(const SmartSize& other) const
-			{
-				return sizeInByte == other.sizeInByte;
-			}
-
-			bool operator>(const SmartSize& other) const
-			{
-				return sizeInByte > other.sizeInByte;
-			}
-
-			bool operator>=(const SmartSize& other) const
-			{
-				return sizeInByte >= other.sizeInByte;
+				return sizeInByte <=> others.sizeInByte;
 			}
 
 			size_t sizeInByte;
