@@ -9,6 +9,8 @@ set(SOURCES
 	ImFileDialog.cpp
 )
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
+
 SET(IMGUI_SRC 
     ${CMAKE_SOURCE_DIR}/external/imgui/imgui.cpp
     ${CMAKE_SOURCE_DIR}/external/imgui/imgui_draw.cpp
