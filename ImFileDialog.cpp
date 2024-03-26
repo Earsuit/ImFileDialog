@@ -516,21 +516,18 @@ namespace ifd {
 		iconPreviewWidth = 0;
 	}
 
-	FileDialog::FileDialog() {
-		m_isOpen = false;
-		m_type = DialogType::openFile;
-		m_calledOpenPopup = false;
-		m_sortColumn = 0;
-		m_sortDirection = ImGuiSortDirection_Ascending;
-		m_filterSelection = 0;
-		m_inputTextbox.clear();
-		m_pathBuffer.clear();
-		m_newEntryBuffer.clear();
-		m_searchBuffer.clear();
-		m_selectedFileItem = -1;
-		m_zoom = MIN_ZOOM_LEVEL;
-		m_previewLoaderRunning = false;
-
+	FileDialog::FileDialog():
+		m_isMultiselect{false},
+		m_isOpen{false},
+		m_type{DialogType::openFile},
+		m_calledOpenPopup{false},
+		m_zoom{MIN_ZOOM_LEVEL},
+		m_selectedFileItem{-1},
+		m_filterSelection{0},
+		m_previewLoaderRunning{false},
+		m_sortColumn{0},
+		m_sortDirection{ImGuiSortDirection_Ascending}
+	{
 		m_setDirectory(std::filesystem::current_path(), false);
 
 		// favorites are available on every OS
