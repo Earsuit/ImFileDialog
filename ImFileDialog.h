@@ -121,45 +121,38 @@ namespace ifd {
 		std::string m_searchBuffer;
 		std::vector<std::string> m_favorites;
 		bool m_calledOpenPopup;
-		std::stack<std::filesystem::path> m_backHistory, m_forwardHistory;
+		std::stack<std::filesystem::path> m_backHistory;
+		std::stack<std::filesystem::path> m_forwardHistory;
 		float m_zoom;
-
 		std::vector<std::filesystem::path> m_selections;
 		int m_selectedFileItem;
-		void m_select(const std::filesystem::path& path, bool isCtrlDown = false);
-
 		std::vector<std::filesystem::path> m_result;
-		bool m_finalize(const std::string& filename = "");
-
 		std::string m_filter;
 		std::vector<std::vector<std::string>> m_filterExtensions;
 		size_t m_filterSelection;
-		void m_parseFilter(const std::string& filter);
-
 		std::unordered_map<std::string, void*> m_icons;
+		std::thread m_previewLoader;
+		bool m_previewLoaderRunning;
+		std::vector<std::unique_ptr<FileTreeNode>> m_treeCache;
+		unsigned int m_sortColumn;
+		unsigned int m_sortDirection;
+		std::vector<FileData> m_content;
+		
+		FileDialog();
+		void m_select(const std::filesystem::path& path, bool isCtrlDown = false);
+		bool m_finalize(const std::string& filename = "");
+		void m_parseFilter(const std::string& filter);
 		void* m_getIcon(const std::filesystem::path& path);
 		void m_clearIcons();
 		void m_refreshIconPreview();
 		void m_clearIconPreview();
-
-		std::thread m_previewLoader;
-		bool m_previewLoaderRunning;
 		void m_stopPreviewLoader();
 		void m_loadPreview();
-
-		std::vector<std::unique_ptr<FileTreeNode>> m_treeCache;
 		void m_renderTree(FileTreeNode& node);
-
-		unsigned int m_sortColumn;
-		unsigned int m_sortDirection;
-		std::vector<FileData> m_content;
 		void m_setDirectory(const std::filesystem::path& p, bool addHistory = true);
 		void m_sortContent(unsigned int column, unsigned int sortDirection);
 		void m_renderContent();
-
 		void m_renderPopups();
 		void m_renderFileDialog();
-
-		FileDialog();
 	};
 }
