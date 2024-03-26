@@ -11,10 +11,6 @@
 #include <unordered_map>
 #include <algorithm> // std::min, std::max
 
-#define IFD_DIALOG_FILE			0
-#define IFD_DIALOG_DIRECTORY	1
-#define IFD_DIALOG_SAVE			2
-
 namespace ifd {
 	enum class Format: char{
 		BGRA,
@@ -60,6 +56,12 @@ namespace ifd {
 	private:
 		static constexpr auto MAX_ZOOM_LEVEL = 25.0f;
 		static constexpr auto MIN_ZOOM_LEVEL = 1.0f;
+
+		enum class DialogType {
+			openFile,
+			openDirectory,
+			saveFile
+		};
 
 		struct FileTreeNode {
 #ifdef _WIN32
@@ -112,7 +114,7 @@ namespace ifd {
 		std::filesystem::path m_currentDirectory;
 		bool m_isMultiselect;
 		bool m_isOpen;
-		uint8_t m_type;
+		DialogType m_type;
 		std::string m_inputTextbox;
 		std::string m_pathBuffer;
 		std::string m_newEntryBuffer;
