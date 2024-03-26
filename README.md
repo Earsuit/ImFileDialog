@@ -16,7 +16,7 @@ Here's an example on how to use ImFileDialog:
 
 1. You need to set the CreateTexture and DeleteTexture function
 ```c++
-ifd::FileDialog::getInstance().createTexture = [](uint8_t* data, int w, int h, char fmt) -> void* {
+ifd::FileDialog::getInstance().createTexture = [](uint8_t* data, int w, int h, ifd::Format fmt) -> void* {
 	GLuint tex;
 
 	glGenTextures(1, &tex);
@@ -25,7 +25,15 @@ ifd::FileDialog::getInstance().createTexture = [](uint8_t* data, int w, int h, c
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, (fmt == 0) ? GL_BGRA : GL_RGBA, GL_UNSIGNED_BYTE, data);
+	
+	if (fmt == ifd::Format::BGRA) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
+	} else if (fmt == ifd::Format::RGBA) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	} else {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	}
+
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -34,6 +42,16 @@ ifd::FileDialog::getInstance().createTexture = [](uint8_t* data, int w, int h, c
 ifd::FileDialog::getInstance().deleteTexture = [](void* tex) {
 	GLuint texID = (GLuint)tex;
 	glDeleteTextures(1, &texID);
+};
+```
+
+Where `ifd::Format` is defined as:
+
+```c++
+enum class Format: char{
+	BGRA,
+	RGBA,
+	RGB
 };
 ```
 
