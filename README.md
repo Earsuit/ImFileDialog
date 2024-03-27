@@ -1,6 +1,6 @@
 # ImFileDialog
 
-Some improvements from [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDialog) based on my own requirements, such as including render item icon follows the system theme for Linux.
+Some improvements from [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDialog) based on my own requirements, such as including render item icon follows the system theme.
 
 Replaced the SDL2 with glfw and update to C++20.
 
