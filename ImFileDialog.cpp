@@ -52,13 +52,15 @@ namespace ifd {
 		TiB
 	};
 
-	template <typename... T>
-	constexpr auto make_array(T&&... values)
+	// we can't use std::common_type_t<Y...> in MSVC, it has a recursive limit 
+	// https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1202?view=msvc-170
+	template <typename T, typename... Y>
+	constexpr auto make_array(Y&&... values)
 	{
-		return std::array<typename std::common_type_t<T...>, sizeof...(T)>{std::forward<typename std::common_type_t<T...>>(values)...};
+		return std::array<T, sizeof...(Y)>{(static_cast<T>(values))...};
 	}
 
-	constexpr auto DEFAULT_FILE_ICON = make_array(
+	constexpr auto DEFAULT_FILE_ICON = make_array<uint32_t>(
 		0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x4c000000, 0xf5000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xdd000000, 0x2d000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff,
 		0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0xff000000, 0xd1000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6b000000, 0x6a000000, 0xa1000000, 0xff000000, 0xff000000, 0x2e000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff,
 		0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0xff000000, 0x54000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x46000000, 0xf5000000, 0xe0000000, 0xff000000, 0x30000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff,
@@ -93,7 +95,7 @@ namespace ifd {
 		0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x4c000000, 0xf5000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xf5000000, 0x4b000000, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff
 	);
 
-	constexpr auto DEFAULT_FOLDER_ICON = make_array(
+	constexpr auto DEFAULT_FOLDER_ICON = make_array<uint32_t>(
 		0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff,
 		0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff,
 		0x00000000, 0x00000000, 0x45000000, 0x8a000000, 0x99000000, 0x97000000, 0x97000000, 0x97000000, 0x97000000, 0x97000000, 0x98000000, 0x81000000, 0x35000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -135,7 +137,7 @@ namespace ifd {
 
 	float computeGuiElementSize(float fontSize)
 	{
-		return std::max(fontSize + EXTRA_SIZE_FOR_ELEMENT, ELEMENT_MAX_SIZE);
+		return std::max<float>(fontSize + EXTRA_SIZE_FOR_ELEMENT, ELEMENT_MAX_SIZE);
 	}
 
 	/* UI CONTROLS */
@@ -492,7 +494,7 @@ namespace ifd {
 	{
 		if (size >= 1024) {
 			if (auto u = magic_enum::enum_cast<SizeUnit>(static_cast<uint8_t>(std::log(size) / std::log(1024.0f))); u) {
-				size = sizeInByte / std::pow(1024.0f, magic_enum::enum_integer(*u));
+				size = sizeInByte / std::pow(1024.0f, static_cast<float>(magic_enum::enum_integer(*u)));  // seems MSVC can't deduce std::pow to return float automatically
 				unit = magic_enum::enum_name(*u);
 			}
 		}
@@ -550,11 +552,11 @@ namespace ifd {
 
 		// OneDrive
 		auto oneDrive = std::make_unique<FileTreeNode>(userPath + L"OneDrive");
-		m_treeCache.emplace_back(oneDrive);
+		m_treeCache.emplace_back(std::move(oneDrive));
 
 		// This PC
 		auto thisPC = std::make_unique<FileTreeNode>("This PC");
-		thisPC->Read = true;
+		thisPC->read = true;
 
 		if (std::filesystem::exists(userPath + L"3D Objects")) {
 			thisPC->children.emplace_back(std::make_unique<FileTreeNode>(userPath + L"3D Objects"));
@@ -910,12 +912,9 @@ namespace ifd {
 		}
 
 #ifdef _WIN32
-		std::error_code ec;
-		m_icons[pathU8] = nullptr;
-
 		DWORD attrs = 0;
 		UINT flags = SHGFI_ICON | SHGFI_LARGEICON;
-		if (!std::filesystem::exists(path, ec)) {
+		if (!std::filesystem::exists(path)) {
 			flags |= SHGFI_USEFILEATTRIBUTES;
 			attrs = FILE_ATTRIBUTE_DIRECTORY;
 		}
@@ -933,17 +932,6 @@ namespace ifd {
 			return nullptr;
 		}
 
-		// check if icon is already loaded
-		auto itr = std::find(m_iconIndices.begin(), m_iconIndices.end(), fileInfo.iIcon);
-		if (itr != m_iconIndices.end()) {
-			const std::string& existingIconFilepath = m_iconFilepaths[itr - m_iconIndices.begin()];
-			m_icons[pathU8] = m_icons[existingIconFilepath];
-			return m_icons[pathU8];
-		}
-
-		m_iconIndices.push_back(fileInfo.iIcon);
-		m_iconFilepaths.push_back(pathU8);
-
 		ICONINFO iconInfo = { 0 };
 		GetIconInfo(fileInfo.hIcon, &iconInfo);
 		
@@ -959,12 +947,11 @@ namespace ifd {
 			return nullptr;
 		}
 
-		uint8_t* data = (uint8_t*)malloc(byteSize);
-		GetBitmapBits(iconInfo.hbmColor, byteSize, data);
+		std::vector<uint8_t> bitmap;
+		bitmap.reserve(byteSize);
+		GetBitmapBits(iconInfo.hbmColor, byteSize, bitmap.data());
 
-		m_icons[pathU8] = this->CreateTexture(data, ds.dsBm.bmWidth, ds.dsBm.bmHeight, Format::BGRA);
-
-		free(data);
+		m_icons[pathU8] = this->createTexture(bitmap.data(), ds.dsBm.bmWidth, ds.dsBm.bmHeight, Format::BGRA);
 
 #elif defined(__linux__)
 		GFile* gFile;
@@ -1642,7 +1629,7 @@ namespace ifd {
 				m_renderContent();
 			ImGui::EndChild();
 			if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != MOUSE_WHEEL_NOT_SCROLLING) {
-				m_zoom = std::min(MAX_ZOOM_LEVEL, std::max(MIN_ZOOM_LEVEL, m_zoom + ImGui::GetIO().MouseWheel));
+				m_zoom = std::min<float>(MAX_ZOOM_LEVEL, std::max<float>(MIN_ZOOM_LEVEL, m_zoom + ImGui::GetIO().MouseWheel));
 				m_refreshIconPreview();
 			}
 

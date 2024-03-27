@@ -45,7 +45,7 @@ namespace ifd {
 		inline const std::vector<std::string>& getFavorites() { return m_favorites; }
 
 		inline void setZoom(float z) { 
-			m_zoom = std::min(MAX_ZOOM_LEVEL, std::max(MIN_ZOOM_LEVEL, z)); 
+			m_zoom = std::min<float>(MAX_ZOOM_LEVEL, std::max<float>(MIN_ZOOM_LEVEL, z)); 
 			m_refreshIconPreview();
 		}
 		inline float getZoom() { return m_zoom; }
