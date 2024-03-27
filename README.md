@@ -78,9 +78,16 @@ Name1 {.ext1,.ext2}, Name2 {.ext3,.ext4},.*
 ```
 
 ## Running the example
+
+To build the example, you need extra libraies `glfw3`, `GLEW` and `opengl`.
+
 If you want to test ImFileDialog, run these commands:
 ```bash
-cmake .
+git submodule init
+git submodule update
+mkdir build
+cd build
+cmake ..
 make
 ./ImFileDialogExample
 ```
