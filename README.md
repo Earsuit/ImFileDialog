@@ -16,6 +16,13 @@ To use ImFileDialog in your project, just add `ImFileDialog.h`, `ImFileDialog.cp
 Please note if you already use `stb_image` library in your project, please exculde the `StbImpl.cpp`,
 otherwise you will have multiple definition of methods from the `stb_image` library.
 
+According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1423r2.html,
+to make it compile with C++20, the simplest solution to upgrade to c++20 with char8_t,
+so add `/Zc:char8_t-` compiler flag to MSVC or `-fno-char8_t` if you are using `Clang`/`g++`.
+
+And also add `-ftemplate-depth=2048` compiler flag if you are using `clang`/`g++`, this is to 
+`constexpr std::array` compile.
+
 Here's an example on how to use ImFileDialog:
 
 1. You need to set the CreateTexture and DeleteTexture function
