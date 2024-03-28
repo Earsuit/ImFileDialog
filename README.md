@@ -8,6 +8,7 @@ Replaced the SDL2 with glfw and update to C++20.
 
  * [Dear ImGui](https://github.com/ocornut/imgui/)
  * [stb_image.h](https://github.com/nothings/stb/blob/master/stb_image.h)
+ * [magic_enum](https://github.com/Neargye/magic_enum)
 
 ## Usage
 To use ImFileDialog in your project, just add ImFileDialog.h and ImFileDialog.cpp to it.
