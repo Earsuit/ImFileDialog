@@ -7,6 +7,7 @@ cmake_policy(SET CMP0072 NEW)
 set(SOURCES
 	example.cpp
 	ImFileDialog.cpp
+    StbImpl.cpp
 )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")

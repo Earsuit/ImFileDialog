@@ -11,7 +11,10 @@ Replaced the SDL2 with glfw and update to C++20.
  * [magic_enum](https://github.com/Neargye/magic_enum)
 
 ## Usage
-To use ImFileDialog in your project, just add ImFileDialog.h and ImFileDialog.cpp to it.
+To use ImFileDialog in your project, just add `ImFileDialog.h`, `ImFileDialog.cpp` and `StbImpl.cpp` to it.
+
+Please note if you already use `stb_image` library in your project, please exculde the `StbImpl.cpp`,
+otherwise you will have multiple definition of methods from the `stb_image` library.
 
 Here's an example on how to use ImFileDialog:
 
