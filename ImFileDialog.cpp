@@ -22,12 +22,12 @@
 #include <shellapi.h>
 #include <lmcons.h>
 #pragma comment(lib, "Shell32.lib")
-#else
-#include <unistd.h>
-#include <pwd.h>
+#elif defined(__linux__)
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 #endif
+#include <unistd.h>
+#include <pwd.h>
 
 namespace ifd {
 	constexpr auto DEFAULT_ICON_SIZE = 32;
@@ -1013,7 +1013,7 @@ namespace ifd {
 
 		// light theme - load default icons
 		if (ImGui::GetStyleColorVec4(ImGuiCol_WindowBg) == IMGUI_LIGHT_THEME_WINDOW_BG) {
-			m_icons[pathU8] = this->CreateTexture(reinterpret_cast<const uint8_t*>(icon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, Format::BGRA);
+			m_icons[pathU8] = this->createTexture(reinterpret_cast<const uint8_t*>(icon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, Format::BGRA);
 		}
 		// dark theme - invert the colors
 		else {
@@ -1023,7 +1023,7 @@ namespace ifd {
 				return (RGB_MASK - (rgba & RGB_MASK)) | (rgba & ALPHA_MASK);
 			});
 
-			m_icons[pathU8] = this->CreateTexture(reinterpret_cast<const uint8_t*>(invertedIcon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, Format::BGRA);
+			m_icons[pathU8] = this->createTexture(reinterpret_cast<const uint8_t*>(invertedIcon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, Format::BGRA);
 		}
 #endif
 		return m_icons[pathU8];
