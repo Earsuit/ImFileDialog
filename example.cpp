@@ -37,9 +37,9 @@ int main(int argc, char* argv[])
         throw std::runtime_error("Failed to initialize glfw.");
     }
     
-    const auto glslVersion = "#version 410";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    const auto glslVersion = "#version 330";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
     // Create window with graphics context
     auto window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Historical Map", NULL, NULL);
