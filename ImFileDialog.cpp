@@ -45,6 +45,7 @@ namespace ifd {
 	constexpr auto ZOOM_LEVEL_RENDER_PREVIEW = 5.0f;
 	constexpr auto ZOOM_LEVEL_LIST_VIEW = 1.0f;
 	constexpr auto CONFIRMATION_POPUP_NAME = "Confirmation";
+	constexpr auto APPLE_ICON_DEFAULT_SCALE_LEVEL = 8;
 
 	enum class SizeUnit : uint8_t {
 		B = 0,
@@ -1041,15 +1042,15 @@ namespace ifd {
 
 		CGImageRef cgImage = [icon CGImageForProposedRect:nullptr context:nullptr hints:nullptr];
 		CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-		auto width = CGImageGetWidth(cgImage);
-    	auto height = CGImageGetHeight(cgImage);
+		auto width = CGImageGetWidth(cgImage) * APPLE_ICON_DEFAULT_SCALE_LEVEL;
+    	auto height = CGImageGetHeight(cgImage) * APPLE_ICON_DEFAULT_SCALE_LEVEL;
 		// use alloc to ensure all initialized to zero
 		std::unique_ptr<uint8_t> rawData{reinterpret_cast<uint8_t*>(calloc(width * height * DEFAULT_ICON_CHANNELS, sizeof(uint8_t)))};
 		CGContextRef bitmapContext = CGBitmapContextCreate(rawData.get(), 
 														   width, 
 														   height, 
 														   CGImageGetBitsPerComponent(cgImage), 
-														   CGImageGetBytesPerRow(cgImage), 
+														   CGImageGetBytesPerRow(cgImage) * APPLE_ICON_DEFAULT_SCALE_LEVEL, 
 														   colorSpace, 
 														   CGImageGetAlphaInfo(cgImage));
 		
@@ -1059,7 +1060,8 @@ namespace ifd {
 			return nullptr;
 		}
 
-		CGContextDrawImage(bitmapContext, CGRectMake(0, 0, width, height), cgImage);
+		CGContextScaleCTM(bitmapContext, APPLE_ICON_DEFAULT_SCALE_LEVEL, APPLE_ICON_DEFAULT_SCALE_LEVEL);
+		CGContextDrawImage(bitmapContext, CGRectMake(0, 0, width / APPLE_ICON_DEFAULT_SCALE_LEVEL, height / APPLE_ICON_DEFAULT_SCALE_LEVEL), cgImage);
 
 		m_icons[pathU8] = this->createTexture(reinterpret_cast<const uint8_t*>(rawData.get()), width, height, Format::RGBA);
 
