@@ -25,6 +25,8 @@
 #elif defined(__linux__)
 #include <gio/gio.h>
 #include <gtk/gtk.h>
+#elif defined(__APPLE__)
+#include <AppKit/AppKit.h>
 #endif
 #include <unistd.h>
 #include <pwd.h>
@@ -1024,6 +1026,46 @@ namespace ifd {
 
 		g_object_unref(gFileInfo);
 		g_object_unref(gFile);
+#elif defined(__APPLE__)
+		NSImage *icon = nullptr;
+
+		if (std::filesystem::exists(path)) {
+			icon = [[NSWorkspace sharedWorkspace] iconForFile:[NSString stringWithUTF8String:path.u8string().c_str()]];
+		} else {
+      		icon = [[NSWorkspace sharedWorkspace] iconForFile:@"/bin"];
+		}
+
+		if (icon == nullptr) {
+			return nullptr;
+		}
+
+		CGImageRef cgImage = [icon CGImageForProposedRect:nullptr context:nullptr hints:nullptr];
+		CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+		auto width = CGImageGetWidth(cgImage);
+    	auto height = CGImageGetHeight(cgImage);
+		// use alloc to ensure all initialized to zero
+		std::unique_ptr<uint8_t> rawData{reinterpret_cast<uint8_t*>(calloc(width * height * DEFAULT_ICON_CHANNELS, sizeof(uint8_t)))};
+		CGContextRef bitmapContext = CGBitmapContextCreate(rawData.get(), 
+														   width, 
+														   height, 
+														   CGImageGetBitsPerComponent(cgImage), 
+														   CGImageGetBytesPerRow(cgImage), 
+														   colorSpace, 
+														   CGImageGetAlphaInfo(cgImage));
+		
+		if (bitmapContext == nullptr) {
+			CGImageRelease(cgImage);
+			CGColorSpaceRelease(colorSpace);
+			return nullptr;
+		}
+
+		CGContextDrawImage(bitmapContext, CGRectMake(0, 0, width, height), cgImage);
+
+		m_icons[pathU8] = this->createTexture(reinterpret_cast<const uint8_t*>(rawData.get()), width, height, Format::RGBA);
+
+		CGImageRelease(cgImage);
+		CGColorSpaceRelease(colorSpace);
+		CGContextRelease(bitmapContext);
 #else
 		auto icon = DEFAULT_FILE_ICON;
 		if (std::filesystem::is_directory(path) || !std::filesystem::exists(path)) {

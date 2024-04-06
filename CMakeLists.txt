@@ -53,6 +53,10 @@ if (MSVC)
 else()
     # -ftemplate-depth for the DEFAULT_FILE_ICON and DEFAULT_FOLDER_ICON
     add_compile_options(-fno-char8_t -ftemplate-depth=2048)
+    if (APPLE)
+        # https://github.com/llvm/llvm-project/issues/48757, use -Wno-elaborated-enum-base to suppress the enum bug on Apple
+        add_compile_options(-Wno-elaborated-enum-base -ObjC++ -DGL_SILENCE_DEPRECATION)
+    endif()
 endif()
 
 # create executable
@@ -69,4 +73,8 @@ target_link_libraries(ImFileDialogExample PRIVATE OpenGL::GL glfw GLEW::GLEW ${C
 
 if (LINUX)
     target_link_libraries(ImFileDialogExample PRIVATE PkgConfig::GIO2 PkgConfig::GTK3)
+endif()
+
+if (APPLE)
+    target_link_libraries(ImFileDialogExample PRIVATE "-framework CoreFoundation" "-framework CoreGraphics" "-framework ImageIO" "-framework AppKit")
 endif()
