@@ -27,9 +27,9 @@ include_directories(external/stb)
 include_directories(external/magic_enum/include)
 
 # cmake toolchain
-if(CMAKE_TOOLCHAIN_FILE)
-    include(${CMAKE_TOOLCHAIN_FILE})
-endif(CMAKE_TOOLCHAIN_FILE)
+# if(CMAKE_TOOLCHAIN_FILE)
+#     include(${CMAKE_TOOLCHAIN_FILE})
+# endif(CMAKE_TOOLCHAIN_FILE)
 
 # pkg
 if (UNIX)

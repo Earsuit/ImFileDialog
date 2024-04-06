@@ -137,6 +137,7 @@ namespace ifd {
 		unsigned int m_sortColumn;
 		unsigned int m_sortDirection;
 		std::vector<FileData> m_content;
+		bool confirmationPopup = false;
 		
 		FileDialog();
 		void m_select(const std::filesystem::path& path, bool isCtrlDown = false);

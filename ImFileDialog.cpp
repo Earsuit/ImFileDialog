@@ -42,6 +42,7 @@ namespace ifd {
 	constexpr auto MOUSE_WHEEL_NOT_SCROLLING = 0.0f;
 	constexpr auto ZOOM_LEVEL_RENDER_PREVIEW = 5.0f;
 	constexpr auto ZOOM_LEVEL_LIST_VIEW = 1.0f;
+	constexpr auto CONFIRMATION_POPUP_NAME = "Confirmation";
 
 	enum class SizeUnit : uint8_t {
 		B = 0,
@@ -50,6 +51,16 @@ namespace ifd {
 		GiB,
 		TiB
 	};
+
+	void AlignForWidth(float width, float alignment = 0.5f)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		float avail = ImGui::GetContentRegionAvail().x;
+		float offset = (avail - width) * alignment;
+		if (offset > 0.0f) {
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
+		}
+	}
 
 	// we can't use std::common_type_t<Y...> in MSVC, it has a recursive limit 
 	// https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1202?view=msvc-170
@@ -706,6 +717,7 @@ namespace ifd {
 		m_currentKey.clear();
 		m_backHistory = std::stack<std::filesystem::path>();
 		m_forwardHistory = std::stack<std::filesystem::path>();
+		confirmationPopup = false;
 
 		for (auto& node : m_treeCache) {
 			for (auto& child : node->children) {
@@ -799,6 +811,16 @@ namespace ifd {
 		bool hasResult = (!filename.empty() && m_type != DialogType::openDirectory) || m_type == DialogType::openDirectory;
 		
 		if (hasResult) {
+			if (m_type == DialogType::saveFile &&
+				std::filesystem::exists(m_currentDirectory / std::filesystem::u8path(filename)) &&
+				!confirmationPopup) {
+				// ask to confirm if overwrite 
+				// shouldn't call OpenPopup here because m_finalize may be called in a ID stack 
+				// level different to where we call BeginPopupModal
+				confirmationPopup = true;
+				return false;
+			}
+
 			if (!m_isMultiselect || m_selections.size() <= 1) {
 				std::filesystem::path path = std::filesystem::u8path(filename);
 
@@ -1625,7 +1647,7 @@ namespace ifd {
 			// content on the right side
 			ImGui::TableSetColumnIndex(1);
 			ImGui::BeginChild("##contentContainer", ImVec2(0, -bottomBarHeight));
-				m_renderContent();
+			m_renderContent();
 			ImGui::EndChild();
 			if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != MOUSE_WHEEL_NOT_SCROLLING) {
 				m_zoom = std::min<float>(MAX_ZOOM_LEVEL, std::max<float>(MIN_ZOOM_LEVEL, m_zoom + ImGui::GetIO().MouseWheel));
@@ -1691,6 +1713,30 @@ namespace ifd {
 		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
 			 escapeKey >= 0 && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
 			m_isOpen = false;
+		}
+
+		if (confirmationPopup && !ImGui::IsPopupOpen(CONFIRMATION_POPUP_NAME)) {
+			ImGui::OpenPopup(CONFIRMATION_POPUP_NAME, ImGuiPopupFlags_AnyPopupLevel);
+		}
+
+		if (ImGui::BeginPopupModal(CONFIRMATION_POPUP_NAME, &confirmationPopup, ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImGui::Text("File exists, do you want to overwrite it?");
+
+			ImGuiStyle& style = ImGui::GetStyle();
+			float width = 0.0f;
+			width += ImGui::CalcTextSize("Yes").x;
+			width += style.ItemSpacing.x;
+			width += ImGui::CalcTextSize("No!").x;
+			AlignForWidth(width);
+
+			if(ImGui::Button("Yes")) {
+				m_finalize(m_inputTextbox);
+			}
+			ImGui::SameLine();
+			if(ImGui::Button("No")) {
+				confirmationPopup = false;
+			}
+			ImGui::EndPopup();
 		}
 	}
 }
