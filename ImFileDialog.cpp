@@ -591,33 +591,36 @@ namespace ifd {
 		
 		m_treeCache.emplace_back(std::move(thisPC));
 #else
-		std::error_code ec;
-
 		// Quick Access
 		struct passwd *pw;
 		uid_t uid;
 		uid = geteuid();
 		pw = getpwuid(uid);
 		if (pw) {
+
+#ifdef __APPLE__
+			std::string homePath = "/Users/" + std::string(pw->pw_name);
+#else
 			std::string homePath = "/home/" + std::string(pw->pw_name);
+#endif
 			
-			if (std::filesystem::exists(homePath, ec)) {
+			if (std::filesystem::exists(homePath)) {
 				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath));
 			}
 				
-			if (std::filesystem::exists(homePath + "/Desktop", ec)) {
+			if (std::filesystem::exists(homePath + "/Desktop")) {
 				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath + "/Desktop"));
 			}
 				
-			if (std::filesystem::exists(homePath + "/Documents", ec)) {
+			if (std::filesystem::exists(homePath + "/Documents")) {
 				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath + "/Documents"));
 			}
 				
-			if (std::filesystem::exists(homePath + "/Downloads", ec)) {
+			if (std::filesystem::exists(homePath + "/Downloads")) {
 				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath + "/Downloads"));
 			}
 				
-			if (std::filesystem::exists(homePath + "/Pictures", ec)) {
+			if (std::filesystem::exists(homePath + "/Pictures")) {
 				quickAccess->children.emplace_back(std::make_unique<FileTreeNode>(homePath + "/Pictures"));
 			}
 		}
@@ -627,8 +630,8 @@ namespace ifd {
 		// This PC
 		auto thisPC = std::make_unique<FileTreeNode>("This PC");
 		thisPC->read = true;
-		for (const auto& entry : std::filesystem::directory_iterator("/", ec)) {
-			if (std::filesystem::is_directory(entry, ec)) {
+		for (const auto& entry : std::filesystem::directory_iterator("/")) {
+			if (std::filesystem::is_directory(entry)) {
 				thisPC->children.emplace_back(std::make_unique<FileTreeNode>(entry.path().u8string()));
 			}
 		}
