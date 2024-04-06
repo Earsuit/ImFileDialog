@@ -1649,9 +1649,24 @@ namespace ifd {
 			ImGui::BeginChild("##contentContainer", ImVec2(0, -bottomBarHeight));
 			m_renderContent();
 			ImGui::EndChild();
-			if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != MOUSE_WHEEL_NOT_SCROLLING) {
-				m_zoom = std::min<float>(MAX_ZOOM_LEVEL, std::max<float>(MIN_ZOOM_LEVEL, m_zoom + ImGui::GetIO().MouseWheel));
-				m_refreshIconPreview();
+			if (ImGui::IsItemHovered()) {
+#ifdef __APPLE__
+				if (ImGui::GetIO().KeySuper) {
+#else
+				if (ImGui::GetIO().KeyCtrl) {
+#endif
+					if (ImGui::GetIO().MouseWheel != MOUSE_WHEEL_NOT_SCROLLING) {
+						m_zoom = std::min<float>(MAX_ZOOM_LEVEL, std::max<float>(MIN_ZOOM_LEVEL, m_zoom + ImGui::GetIO().MouseWheel));
+					}
+
+					if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Equal))) {
+						m_zoom = std::clamp(m_zoom + 1, MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL);
+					} else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Minus))) {
+						m_zoom = std::clamp(m_zoom - 1, MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL);
+					}
+					
+					m_refreshIconPreview();
+				}
 			}
 
 			// New file, New directory and Delete popups
