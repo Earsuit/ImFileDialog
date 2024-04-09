@@ -814,22 +814,31 @@ namespace ifd {
 
 	bool FileDialog::m_finalize(const std::string& filename)
 	{
+		auto path = std::filesystem::u8path(filename);
 		bool hasResult = (!filename.empty() && m_type != DialogType::openDirectory) || m_type == DialogType::openDirectory;
 		
 		if (hasResult) {
-			if (m_type == DialogType::saveFile &&
-				std::filesystem::exists(m_currentDirectory / std::filesystem::u8path(filename)) &&
-				!confirmationPopup) {
-				// ask to confirm if overwrite 
-				// shouldn't call OpenPopup here because m_finalize may be called in a ID stack 
-				// level different to where we call BeginPopupModal
-				confirmationPopup = true;
-				return false;
+			if (m_type == DialogType::saveFile) {
+				// add the extension
+				if (m_filterSelection < m_filterExtensions.size() && m_filterExtensions[m_filterSelection].size() > 0) {
+					if (!path.has_extension()) {
+						std::string extAdd = m_filterExtensions[m_filterSelection][0];
+						path.replace_extension(extAdd);
+						m_inputTextbox = path.u8string();
+					}
+				}
+
+				if (std::filesystem::exists(m_currentDirectory / path) &&
+					!confirmationPopup) {
+					// ask to confirm if overwrite 
+					// shouldn't call OpenPopup here because m_finalize may be called in a ID stack 
+					// level different to where we call BeginPopupModal
+					confirmationPopup = true;
+					return false;
+				}
 			}
 
 			if (!m_isMultiselect || m_selections.size() <= 1) {
-				std::filesystem::path path = std::filesystem::u8path(filename);
-
 				if (path.is_absolute()) {
 					m_result.push_back(path);
 				} else {
@@ -856,16 +865,6 @@ namespace ifd {
 							m_result.clear();
 							return false;
 						}
-					}
-				}
-			}
-			
-			if (m_type == DialogType::saveFile) {
-				// add the extension
-				if (m_filterSelection < m_filterExtensions.size() && m_filterExtensions[m_filterSelection].size() > 0) {
-					if (!m_result.back().has_extension()) {
-						std::string extAdd = m_filterExtensions[m_filterSelection][0];
-						m_result.back().replace_extension(extAdd);
 					}
 				}
 			}
