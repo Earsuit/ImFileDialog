@@ -10,10 +10,27 @@ Replaced the SDL2 with glfw and update to C++20.
  * [stb_image.h](https://github.com/nothings/stb/blob/master/stb_image.h)
  * [magic_enum](https://github.com/Neargye/magic_enum)
 
+## Compile example
+
+### Windows
+
+#### Install dependencies
+
+The example requires OpenGL, GLFW3 and GLEW, on Windows, these could be installed via [vcpkg](https://github.com/microsoft/vcpkg?tab=readme-ov-file#using-vcpkg-with-cmake).
+
+#### Build example
+
+1. `git submodule init && git submodule update`
+2. `mkdir build && cd build`
+3. `cmake -B . -S .. "-DCMAKE_TOOLCHAIN_FILE=[path to vcpkg]\scripts/buildsystems/vcpkg.cmake"`
+4. `cmake --build ..`
+5. `cd Debug`
+6. `./ImFileDialogExample.exe`
+
 ## Usage
 To use ImFileDialog in your project, just add `ImFileDialog.h`, `ImFileDialog.cpp` and `StbImpl.cpp` to it.
 
-Please note if you already use `stb_image` library in your project, please exculde the `StbImpl.cpp`,
+Please note if you already use `stb_image` library in your project, just exculde the `StbImpl.cpp`,
 otherwise you will have multiple definition of methods from the `stb_image` library.
 
 According to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1423r2.html,
