@@ -2,7 +2,7 @@
 
 Some improvements from [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDialog) based on my own requirements, such as including render item icon follows the system theme and ask confirmation if file exits in save mode.
 
-Replaced the SDL2 with glfw and update to C++20.
+Replaced the SDL2 with glfw and upgrade to C++20.
 
 ## Requirements
 
