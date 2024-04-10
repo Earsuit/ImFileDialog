@@ -25,11 +25,11 @@
 #elif defined(__linux__)
 #include <gio/gio.h>
 #include <gtk/gtk.h>
+#include <unistd.h>
+#include <pwd.h>
 #elif defined(__APPLE__)
 #include <AppKit/AppKit.h>
 #endif
-#include <unistd.h>
-#include <pwd.h>
 
 namespace ifd {
 	constexpr auto DEFAULT_ICON_SIZE = 32;
