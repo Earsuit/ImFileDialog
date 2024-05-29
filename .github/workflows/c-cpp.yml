@@ -12,17 +12,17 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
-    - name: "install brew"
+    - name: install brew
       run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    - name: "install dependencies"
+    - name: install dependencies
       run: brew install glew glfw cmake
-    - name: "create build dir"
+    - name: create build dir
       run: mkdir build
-    - name: "run cmake"
+    - name: run cmake
       run: cmake ..
       working-directory:
         build/
-    - name: "run make" 
+    - name: run make
       run: make -j
       working-directory:
         build/
@@ -34,16 +34,16 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
-    - name: "install dependencies"
+    - name: install dependencies
       run: sudo apt-get install libgl1-mesa-dev libglew-dev libglfw3-dev libcurl4-openssl-dev libgtk-3-dev -y
-    - name: "create build dir"
+    - name: create build dir
       run: mkdir build
-    - name: "run cmake"
+    - name: run cmake
       run:
         cmake ..
       working-directory:
         build/
-    - name: "run make" 
+    - name: run make
       run: make -j
       working-directory:
         build/
