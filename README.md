@@ -1,14 +1,18 @@
 # ImFileDialog
 
-Some improvements from [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDialog) based on my own requirements, such as including render item icon follows the system theme and ask confirmation if file exits in save mode.
+Some improvements from [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDialog) based on my own needs, such as  
 
-Replaced the SDL2 with glfw and upgrade to C++20.
+- render item icon follows the system theme
+- ask confirmation if file exits in save mode
+- replaced the SDL2 with glfw for the example
+- upgrade to C++20
 
-## Requirements
+## Dependencies
 
  * [Dear ImGui](https://github.com/ocornut/imgui/)
  * [stb_image.h](https://github.com/nothings/stb/blob/master/stb_image.h)
  * [magic_enum](https://github.com/Neargye/magic_enum)
+ * [gtk3](https://www.gtk.org/) on Linux
 
 ## Compile example
 
@@ -18,7 +22,7 @@ Replaced the SDL2 with glfw and upgrade to C++20.
 
 The example requires OpenGL, GLFW3 and GLEW, on Windows, these could be installed via [vcpkg](https://github.com/microsoft/vcpkg?tab=readme-ov-file#using-vcpkg-with-cmake).
 
-#### Build example
+#### Build
 
 1. `git submodule init && git submodule update`
 2. `mkdir build && cd build`
@@ -26,6 +30,34 @@ The example requires OpenGL, GLFW3 and GLEW, on Windows, these could be installe
 4. `cmake --build ..`
 5. `cd Debug`
 6. `./ImFileDialogExample.exe`
+
+### Linux
+
+#### Install dependencies
+
+`sudo apt-get install libgl1-mesa-dev libglew-dev libglfw3-dev libcurl4-openssl-dev libgtk-3-dev -y`
+
+#### Build
+
+1. `git submodule init && git submodule update`
+2. `mkdir build && cd build`
+3. `cmake ..`
+4. `make -j`
+5. `./ImFileDialogExample`
+
+### MacOS
+
+#### Install dependencies
+
+`brew install glew glfw`
+
+#### Build
+
+1. `git submodule init && git submodule update`
+2. `mkdir build && cd build`
+3. `cmake ..`
+4. `make -j`
+5. `./ImFileDialogExample`
 
 ## Usage
 To use ImFileDialog in your project, just add `ImFileDialog.h`, `ImFileDialog.cpp` and `StbImpl.cpp` to it.
@@ -105,21 +137,6 @@ File filter syntax:
 Name1 {.ext1,.ext2}, Name2 {.ext3,.ext4},.*
 ```
 
-## Running the example
-
-To build the example, you need extra libraies `glfw3`, `GLEW` and `opengl`.
-
-If you want to test ImFileDialog, run these commands:
-```bash
-git submodule init
-git submodule update
-mkdir build
-cd build
-cmake ..
-make
-./ImFileDialogExample
-```
-
 ## Screenshots
 **1. Table view:**
 
@@ -141,8 +158,6 @@ make
 
 ![Table view](https://user-images.githubusercontent.com/30801537/107225891-afbc1e00-6a19-11eb-8551-6caa4c2173d1.gif)
 
-## TODO
- * preview pane / layout options
 
 ## LICENSE
 ImFileDialog is licensed under MIT license. See [LICENSE](./LICENSE) for more details. 
