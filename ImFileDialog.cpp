@@ -29,6 +29,8 @@
 #include <pwd.h>
 #elif defined(__APPLE__)
 #include <AppKit/AppKit.h>
+#include <unistd.h>
+#include <pwd.h>
 #endif
 
 namespace ifd {
