@@ -6,13 +6,13 @@ Some improvements from [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDia
 - ask confirmation if file exits in save mode
 - replaced the SDL2 with glfw for the example
 - upgrade to C++20
+- remove the need of GTK-3 on Linux
 
 ## Dependencies
 
  * [Dear ImGui](https://github.com/ocornut/imgui/)
  * [stb_image.h](https://github.com/nothings/stb/blob/master/stb_image.h)
  * [magic_enum](https://github.com/Neargye/magic_enum)
- * [gtk3](https://www.gtk.org/) on Linux
 
 ## Compile example
 
@@ -35,7 +35,7 @@ The example requires OpenGL, GLFW3 and GLEW, on Windows, these could be installe
 
 #### Install dependencies
 
-`sudo apt-get install libgl1-mesa-dev libglew-dev libglfw3-dev libcurl4-openssl-dev libgtk-3-dev -y`
+`sudo apt-get install libgl1-mesa-dev libglew-dev libglfw3-dev -y`
 
 #### Build
 

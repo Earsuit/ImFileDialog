@@ -24,7 +24,6 @@
 #pragma comment(lib, "Shell32.lib")
 #elif defined(__linux__)
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <unistd.h>
 #include <pwd.h>
 #elif defined(__APPLE__)
@@ -48,6 +47,9 @@ namespace ifd {
 	constexpr auto ZOOM_LEVEL_LIST_VIEW = 1.0f;
 	constexpr auto CONFIRMATION_POPUP_NAME = "Confirmation";
 	constexpr auto APPLE_ICON_DEFAULT_SCALE_LEVEL = 8;
+	constexpr auto NUM_SYSTEM_ICON_PATH = 3;
+	constexpr auto USER_ICON_PATH = "~/.icons";
+	constexpr auto GLOBAL_ICON_PATH = "/usr/share/icons";
 
 	enum class SizeUnit : uint8_t {
 		B = 0,
@@ -56,6 +58,20 @@ namespace ifd {
 		GiB,
 		TiB
 	};
+
+#ifdef __linux__
+	std::string getIconTheme() 
+	{
+		const auto settings = g_settings_new("org.gnome.desktop.interface");
+		if (!settings) {
+			fprintf(stderr, "Error creating GSettings object\n");
+			return {};
+		}
+		const auto iconTheme = g_settings_get_string(settings, "icon-theme");
+		g_object_unref(settings);
+		return iconTheme;
+	}
+#endif
 
 	void AlignForWidth(float width, float alignment = 0.5f)
 	{
@@ -931,6 +947,46 @@ namespace ifd {
 		}
 	}
 
+#ifdef __linux__
+	std::filesystem::path FileDialog::m_locateIcon(const std::string& iconName, int size)
+	{
+		const auto home = g_get_home_dir();
+		const auto theme = getIconTheme();
+		if (theme.empty()) {
+			fprintf(stderr, "Error getting icon theme\n");
+			return {};
+		}
+
+		if (!m_iconPathCache.contains(theme)) {
+			m_iconPathCache.emplace(std::make_pair(theme, std::unordered_map<std::string, std::filesystem::path>{}));
+		} else if (m_iconPathCache[theme].contains(iconName)) {
+			return m_iconPathCache[theme][iconName];
+		}
+
+		std::string sizeString = std::to_string(size);
+		std::filesystem::path dimension = sizeString + "x" + sizeString;
+		std::array<std::filesystem::path, NUM_SYSTEM_ICON_PATH> directories{
+			std::filesystem::path{USER_ICON_PATH} / theme / dimension,
+			std::filesystem::path{GLOBAL_ICON_PATH} / theme / dimension,
+		};
+
+		for (const auto dir : directories) {
+			std::vector<std::filesystem::path> subdirectories;
+			if (std::filesystem::exists(dir)) {
+				for (const auto subdir : std::filesystem::directory_iterator(dir)) {
+					std::filesystem::path iconPath = subdir / std::filesystem::path{iconName + ".png"};
+					if (std::filesystem::exists(iconPath)) {
+						m_iconPathCache[theme].emplace(std::make_pair(iconName, iconPath));
+						return iconPath;
+					}
+				}
+			}
+		}
+
+		return {};
+	}
+#endif
+
 	void* FileDialog::m_getIcon(const std::filesystem::path& path)
 	{
 		const std::string pathU8 = path.u8string();
@@ -994,7 +1050,7 @@ namespace ifd {
 			return nullptr;
 		}
 		
-		const auto gFileInfo = g_file_query_info(gFile, "standard::*", G_FILE_QUERY_INFO_NONE, nullptr, nullptr);
+		const auto gFileInfo = g_file_query_info(gFile, G_FILE_ATTRIBUTE_STANDARD_ICON, G_FILE_QUERY_INFO_NONE, nullptr, nullptr);
 		if (!G_IS_OBJECT(gFileInfo)) {
 			g_object_unref(gFile);
 			return nullptr;
@@ -1007,26 +1063,27 @@ namespace ifd {
 			return nullptr;
 		}
 
-		auto iconName = g_themed_icon_get_names(G_THEMED_ICON(icon));
-
-		static bool gtkInit = false; 
-		if (!gtkInit) {
-			gtk_init(nullptr, nullptr);
-			gtkInit = true;
+		std::filesystem::path iconPath{};
+		if (G_IS_THEMED_ICON(icon)) {
+			const auto names = g_themed_icon_get_names(G_THEMED_ICON(icon));
+			for (int i = 0; names[i] != NULL; i++) {
+				iconPath = m_locateIcon(names[i], DEFAULT_ICON_SIZE);
+				if (!iconPath.empty()) {
+					break;
+				}
+			}
+		} else if (G_IS_FILE_ICON(icon)) {
+			GFile *file_icon = g_file_icon_get_file(G_FILE_ICON(icon));
+			iconPath = g_file_get_path(file_icon);
 		}
 
-		if (const auto gtkIconInfo = gtk_icon_theme_choose_icon(gtk_icon_theme_get_default(), 
-																const_cast<const char**>(iconName), 
-																DEFAULT_ICON_SIZE, 
-																GTK_ICON_LOOKUP_FORCE_SIZE); 
-			G_IS_OBJECT(gtkIconInfo)) {
-			const auto gPixBuf = gtk_icon_info_load_icon(gtkIconInfo, nullptr);
-			const auto fmt = gdk_pixbuf_get_has_alpha(gPixBuf) ? Format::RGBA : Format::RGB;
+		if (iconPath.empty()) {
+			m_loadDefaultIcon(path, pathU8);
+		} else {
 
-			m_icons[pathU8] = this->createTexture(gdk_pixbuf_get_pixels(gPixBuf), gdk_pixbuf_get_width(gPixBuf), gdk_pixbuf_get_height(gPixBuf), fmt);
-		
-			g_object_unref(gtkIconInfo);
-			g_object_unref(gPixBuf);
+			int width, height, channel;
+			const auto image_data = stbi_load(iconPath.string().c_str(), &width, &height, &channel, 0);
+			m_icons[pathU8] = this->createTexture(image_data, width, height, Format::RGBA);
 		}
 
 		g_object_unref(gFileInfo);
@@ -1073,6 +1130,13 @@ namespace ifd {
 		CGColorSpaceRelease(colorSpace);
 		CGContextRelease(bitmapContext);
 #else
+		m_loadDefaultIcon(path, pathU8);
+#endif
+		return m_icons[pathU8];
+	}
+
+	void FileDialog::m_loadDefaultIcon(const std::filesystem::path& path, const std::string& pathU8)
+	{
 		auto icon = DEFAULT_FILE_ICON;
 		if (std::filesystem::is_directory(path) || !std::filesystem::exists(path)) {
 			// treat non-exists path as a director, such as "Quick access"
@@ -1095,8 +1159,6 @@ namespace ifd {
 
 			m_icons[pathU8] = this->createTexture(reinterpret_cast<const uint8_t*>(invertedIcon.data()), DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, Format::BGRA);
 		}
-#endif
-		return m_icons[pathU8];
 	}
 
 	void FileDialog::m_clearIcons()

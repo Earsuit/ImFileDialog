@@ -33,7 +33,6 @@ endif()
 
 if (LINUX)
     pkg_check_modules(GIO2 REQUIRED IMPORTED_TARGET gio-2.0)
-    pkg_check_modules(GTK3 REQUIRED IMPORTED_TARGET gtk+-3.0)
 endif()
 
 find_package(OpenGL REQUIRED)
@@ -67,7 +66,7 @@ set_target_properties(ImFileDialogExample PROPERTIES
 target_link_libraries(ImFileDialogExample PRIVATE OpenGL::GL glfw GLEW::GLEW ${CMAKE_DL_LIBS} Threads::Threads)
 
 if (LINUX)
-    target_link_libraries(ImFileDialogExample PRIVATE PkgConfig::GIO2 PkgConfig::GTK3)
+    target_link_libraries(ImFileDialogExample PRIVATE PkgConfig::GIO2)
 endif()
 
 if (APPLE)

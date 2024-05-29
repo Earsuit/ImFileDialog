@@ -138,12 +138,14 @@ namespace ifd {
 		unsigned int m_sortDirection;
 		std::vector<FileData> m_content;
 		bool confirmationPopup = false;
+		std::unordered_map<std::string, std::unordered_map<std::string, std::filesystem::path>> m_iconPathCache;
 		
 		FileDialog();
 		void m_select(const std::filesystem::path& path, bool isCtrlDown = false);
 		bool m_finalize(const std::string& filename = "");
 		void m_parseFilter(const std::string& filter);
 		void* m_getIcon(const std::filesystem::path& path);
+		void m_loadDefaultIcon(const std::filesystem::path& path, const std::string& pathU8);
 		void m_clearIcons();
 		void m_refreshIconPreview();
 		void m_clearIconPreview();
@@ -155,5 +157,9 @@ namespace ifd {
 		void m_renderContent();
 		void m_renderPopups();
 		void m_renderFileDialog();
+
+#ifdef __linux__
+		std::filesystem::path m_locateIcon(const std::string& iconName, int size);
+#endif
 	};
 }
