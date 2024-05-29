@@ -1,0 +1,28 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: "install brew"
+      run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    - name: "install dependencies"
+      run: brew install glew glfw cmake
+    - name: "create build dir"
+      run: mkdir build
+    - name: "run cmake"
+      run: cmake ..
+      working-directory:
+        build/
+    - name: "run make" 
+      run: make -j
+      working-directory:
+        build/
