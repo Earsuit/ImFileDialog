@@ -47,3 +47,29 @@ jobs:
       run: make -j
       working-directory:
         build/
+
+  build-win:
+    runs-on: windows-latest
+
+    steps:
+    - uses: lukka/get-cmake@v3.29.1
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: install vcpkg
+      run: | 
+        git clone https://github.com/microsoft/vcpkg
+        .\vcpkg\bootstrap-vcpkg.bat
+    - name: install dependencies
+      run: .\vcpkg\vcpkg.exe install glew glfw3
+    - name: create build dir
+      run: mkdir build
+    - name: run cmake
+      run:
+        cmake -B . -S .. -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
+      working-directory:
+        build/
+    - name: run make
+      run: cmake --build .
+      working-directory:
+        build/
