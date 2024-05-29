@@ -7,6 +7,7 @@ Some improvements from [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDia
 - replaced the SDL2 with glfw for the example
 - upgrade to C++20
 - remove the need of GTK-3 on Linux
+- better support on Windows, Linux, Macos
 
 ## Dependencies
 
