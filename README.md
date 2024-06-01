@@ -28,7 +28,7 @@ The example requires OpenGL, GLFW3 and GLEW, on Windows, these could be installe
 1. `git submodule init && git submodule update`
 2. `mkdir build && cd build`
 3. `cmake -B . -S .. "-DCMAKE_TOOLCHAIN_FILE=[path to vcpkg]\scripts/buildsystems/vcpkg.cmake"`
-4. `cmake --build ..`
+4. `cmake --build .`
 5. `cd Debug`
 6. `./ImFileDialogExample.exe`
 
