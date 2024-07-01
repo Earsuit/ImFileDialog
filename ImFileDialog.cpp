@@ -32,6 +32,13 @@
 #include <pwd.h>
 #endif
 
+#ifdef USE_GETTEXT
+#include <libintl.h>
+#define __(x) gettext(x)
+#else
+#define __(x) x
+#endif
+
 namespace ifd {
 	constexpr auto DEFAULT_ICON_SIZE = 32;
 	constexpr auto PI = 3.141592f;
@@ -45,7 +52,6 @@ namespace ifd {
 	constexpr auto MOUSE_WHEEL_NOT_SCROLLING = 0.0f;
 	constexpr auto ZOOM_LEVEL_RENDER_PREVIEW = 5.0f;
 	constexpr auto ZOOM_LEVEL_LIST_VIEW = 1.0f;
-	constexpr auto CONFIRMATION_POPUP_NAME = "Confirmation";
 	constexpr auto APPLE_ICON_DEFAULT_SCALE_LEVEL = 8;
 	constexpr auto NUM_SYSTEM_ICON_PATH = 3;
 	constexpr auto USER_ICON_PATH = "~/.icons";
@@ -918,7 +924,7 @@ namespace ifd {
 			else if (filter[i] == '{') {
 				std::string filterName = filter.substr(lastSplit, i - lastSplit);
 				if (filterName == ".*") {
-					m_filter += std::string(std::string("All Files (*.*)\0").c_str(), 16);
+					m_filter += std::string(std::string(__("All Files (*.*)\0")).c_str(), 16);
 					m_filterExtensions.push_back(std::vector<std::string>());
 				} else {
 					m_filter += std::string((filterName + "\0").c_str(), filterName.size() + 1);
@@ -938,7 +944,7 @@ namespace ifd {
 		if (lastSplit != 0) {
 			std::string filterName = filter.substr(lastSplit);
 			if (filterName == ".*") {
-				m_filter += std::string(std::string("All Files (*.*)\0").c_str(), 16);
+				m_filter += std::string(std::string(__("All Files (*.*)\0")).c_str(), 16);
 				m_filterExtensions.push_back(std::vector<std::string>());
 			}
 			else {
@@ -1459,9 +1465,9 @@ namespace ifd {
 		if (m_zoom == ZOOM_LEVEL_LIST_VIEW) {
 			if (ImGui::BeginTable("##contentTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable | ImGuiTableFlags_NoBordersInBody, ImVec2(0, -FLT_MIN))) {
 				// header
-				ImGui::TableSetupColumn("Name##filename", ImGuiTableColumnFlags_WidthStretch, 0.0f -1.0f, 0);
-				ImGui::TableSetupColumn("Date modified##filedate", ImGuiTableColumnFlags_WidthStretch, 0.0f, 1);
-				ImGui::TableSetupColumn("Size##filesize", ImGuiTableColumnFlags_WidthStretch, 0.0f, 2);
+				ImGui::TableSetupColumn(__("Name##filename"), ImGuiTableColumnFlags_WidthStretch, 0.0f -1.0f, 0);
+				ImGui::TableSetupColumn(__("Date modified##filedate"), ImGuiTableColumnFlags_WidthStretch, 0.0f, 1);
+				ImGui::TableSetupColumn(__("Size##filesize"), ImGuiTableColumnFlags_WidthStretch, 0.0f, 2);
                 ImGui::TableSetupScrollFreeze(0, 1);
 				ImGui::TableHeadersRow();
 
@@ -1581,15 +1587,15 @@ namespace ifd {
 	{
 		bool openAreYouSureDlg = false, openNewFileDlg = false, openNewDirectoryDlg = false;
 		if (ImGui::BeginPopupContextItem("##dir_context")) {
-			if (ImGui::Selectable("New file")) {
+			if (ImGui::Selectable(__("New file"))) {
 				openNewFileDlg = true;
 			}
 
-			if (ImGui::Selectable("New directory")) {
+			if (ImGui::Selectable(__("New directory"))) {
 				openNewDirectoryDlg = true;
 			}
 
-			if (m_selectedFileItem != -1 && ImGui::Selectable("Delete")) {
+			if (m_selectedFileItem != -1 && ImGui::Selectable(__("Delete"))) {
 				openAreYouSureDlg = true;
 			}
 
@@ -1597,43 +1603,43 @@ namespace ifd {
 		}
 
 		if (openAreYouSureDlg) {
-			ImGui::OpenPopup("Are you sure?##delete");
+			ImGui::OpenPopup(__("Are you sure?##delete"));
 		}
 
 		if (openNewFileDlg) {
-			ImGui::OpenPopup("Enter file name##newfile");
+			ImGui::OpenPopup(__("Enter file name##newfile"));
 		}
 
 		if (openNewDirectoryDlg) {
-			ImGui::OpenPopup("Enter directory name##newdir");
+			ImGui::OpenPopup(__("Enter directory name##newdir"));
 		}
 
-		if (ImGui::BeginPopupModal("Are you sure?##delete")) {
+		if (ImGui::BeginPopupModal(__("Are you sure?##delete"))) {
 			if (m_selectedFileItem >= static_cast<int>(m_content.size()) || m_content.size() == 0) {
 				ImGui::CloseCurrentPopup();
 			} else {
 				const FileData& data = m_content[m_selectedFileItem];
-				ImGui::TextWrapped("Are you sure you want to delete %s?", data.path.filename().u8string().c_str());
-				if (ImGui::Button("Yes")) {
+				ImGui::TextWrapped(__("Are you sure you want to delete %s?"), data.path.filename().u8string().c_str());
+				if (ImGui::Button(__("Yes"))) {
 					std::error_code ec;
 					std::filesystem::remove_all(data.path, ec);
 					m_setDirectory(m_currentDirectory, false); // refresh
 					ImGui::CloseCurrentPopup();
 				}
 				ImGui::SameLine();
-				if (ImGui::Button("No")) {
+				if (ImGui::Button(__("No"))) {
 					ImGui::CloseCurrentPopup();
 				}
 			}
 			ImGui::EndPopup();
 		}
 
-		if (ImGui::BeginPopupModal("Enter file name##newfile")) {
+		if (ImGui::BeginPopupModal(__("Enter file name##newfile"))) {
 			ImGui::PushItemWidth(250.0f);
 			ImGui::InputText("##newfilename", &m_newEntryBuffer);
 			ImGui::PopItemWidth();
 
-			if (ImGui::Button("OK")) {
+			if (ImGui::Button(__("OK"))) {
 				std::ofstream out((m_currentDirectory / m_newEntryBuffer).string());
 				out << "";
 				out.close();
@@ -1644,18 +1650,18 @@ namespace ifd {
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel")) {
+			if (ImGui::Button(__("Cancel"))) {
 				m_newEntryBuffer.clear();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
 		}
-		if (ImGui::BeginPopupModal("Enter directory name##newdir")) {
+		if (ImGui::BeginPopupModal(__("Enter directory name##newdir"))) {
 			ImGui::PushItemWidth(250.0f);
 			ImGui::InputText("##newfilename", &m_newEntryBuffer); // TODO: remove hardcoded literals
 			ImGui::PopItemWidth();
 
-			if (ImGui::Button("OK")) {
+			if (ImGui::Button(__("OK"))) {
 				std::error_code ec;
 				std::filesystem::create_directory(m_currentDirectory / m_newEntryBuffer, ec);
 				m_setDirectory(m_currentDirectory, false); // refresh
@@ -1663,7 +1669,7 @@ namespace ifd {
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel")) {
+			if (ImGui::Button(__("Cancel"))) {
 				ImGui::CloseCurrentPopup();
 				m_newEntryBuffer.clear();
 			}
@@ -1735,7 +1741,7 @@ namespace ifd {
 		ImGui::SameLine();
 		ImGui::PopStyleColor();
 
-		if (ImGui::InputTextWithHint("##searchTB", "Search", &m_searchBuffer)) {
+		if (ImGui::InputTextWithHint("##searchTB", __("Search"), &m_searchBuffer)) {
 			m_setDirectory(m_currentDirectory, false); // refresh
 		}
 
@@ -1786,9 +1792,9 @@ namespace ifd {
 		}
 		
 		/***** BOTTOM BAR *****/
-		ImGui::Text("File name:");
+		ImGui::Text(__("File name:"));
 		ImGui::SameLine();
-		if (ImGui::InputTextWithHint("##file_input", "Filename", &m_inputTextbox, ImGuiInputTextFlags_EnterReturnsTrue)) {
+		if (ImGui::InputTextWithHint("##file_input", __("Filename"), &m_inputTextbox, ImGuiInputTextFlags_EnterReturnsTrue)) {
 			bool success = m_finalize(m_inputTextbox);
 #ifdef _WIN32
 			if (!success)
@@ -1811,7 +1817,7 @@ namespace ifd {
 		// buttons
 		float ok_cancel_width = computeGuiElementSize(GImGui->FontSize) * 7;
 		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ok_cancel_width);
-		if (ImGui::Button(m_type == DialogType::saveFile ? "Save" : "Open", ImVec2(ok_cancel_width / 2 - ImGui::GetStyle().ItemSpacing.x, 0.0f))) {
+		if (ImGui::Button(m_type == DialogType::saveFile ? __("Save") : __("Open"), ImVec2(ok_cancel_width / 2 - ImGui::GetStyle().ItemSpacing.x, 0.0f))) {
 			bool success = false;
 			if (!m_inputTextbox.empty() || m_type == DialogType::openDirectory) {
 				success = m_finalize(m_inputTextbox);
@@ -1826,7 +1832,7 @@ namespace ifd {
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel", ImVec2(-FLT_MIN, 0.0f))) {
+		if (ImGui::Button(__("Cancel"), ImVec2(-FLT_MIN, 0.0f))) {
 			if (m_type == DialogType::openDirectory) {
 				m_isOpen = false;
 			} else {
@@ -1840,25 +1846,25 @@ namespace ifd {
 			m_isOpen = false;
 		}
 
-		if (confirmationPopup && !ImGui::IsPopupOpen(CONFIRMATION_POPUP_NAME)) {
-			ImGui::OpenPopup(CONFIRMATION_POPUP_NAME, ImGuiPopupFlags_AnyPopupLevel);
+		if (confirmationPopup && !ImGui::IsPopupOpen(__("Confirmation"))) {
+			ImGui::OpenPopup(__("Confirmation"), ImGuiPopupFlags_AnyPopupLevel);
 		}
 
-		if (ImGui::BeginPopupModal(CONFIRMATION_POPUP_NAME, &confirmationPopup, ImGuiWindowFlags_AlwaysAutoResize)) {
-			ImGui::Text("File exists, do you want to overwrite it?");
+		if (ImGui::BeginPopupModal(__("Confirmation"), &confirmationPopup, ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImGui::Text(__("File exists, do you want to overwrite it?"));
 
 			ImGuiStyle& style = ImGui::GetStyle();
 			float width = 0.0f;
-			width += ImGui::CalcTextSize("Yes").x;
+			width += ImGui::CalcTextSize(__("Yes")).x;
 			width += style.ItemSpacing.x;
-			width += ImGui::CalcTextSize("No!").x;
+			width += ImGui::CalcTextSize(__("No!")).x;
 			AlignForWidth(width);
 
-			if(ImGui::Button("Yes")) {
+			if(ImGui::Button(__("Yes"))) {
 				m_finalize(m_inputTextbox);
 			}
 			ImGui::SameLine();
-			if(ImGui::Button("No")) {
+			if(ImGui::Button(__("No"))) {
 				confirmationPopup = false;
 			}
 			ImGui::EndPopup();

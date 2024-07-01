@@ -8,6 +8,7 @@ Some improvements from [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDia
 - upgrade to C++20
 - remove the need of GTK-3 on Linux
 - better support on Windows, Linux, Macos
+- Allow use Gettext for translation, enable with compile flag `USE_GETTEXT`.
 
 ## Dependencies
 
