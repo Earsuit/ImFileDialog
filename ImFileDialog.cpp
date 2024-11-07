@@ -588,8 +588,10 @@ namespace ifd {
 		m_treeCache.emplace_back(std::move(quickAccess));
 
 		// OneDrive
-		auto oneDrive = std::make_unique<FileTreeNode>(_wgetenv(L"OneDriveConsumer"));
-		m_treeCache.emplace_back(std::move(oneDrive));
+		if (auto oneDrivePath = _wgetenv(L"OneDrive"); oneDrivePath != nullptr) {
+			auto oneDrive = std::make_unique<FileTreeNode>(oneDrivePath);
+			m_treeCache.emplace_back(std::move(oneDrive));
+		}
 
 		// This PC
 		auto thisPC = std::make_unique<FileTreeNode>("This PC");
